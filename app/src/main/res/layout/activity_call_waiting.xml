@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    android:background="#FFFFFF">
+
+    <!-- 1) 헤더 카드 -->
+    <LinearLayout
+        android:id="@+id/headerCard"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@drawable/card_bg"
+        android:padding="12dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageView
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/silverroad_logo"
+            android:contentDescription="기사 사진"
+            android:layout_marginEnd="12dp"/>
+
+        <TextView
+            android:id="@+id/tvDriverName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="이홍규 기사님"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#222222"/>
+    </LinearLayout>
+
+    <!-- 2) 상태 카드 -->
+    <TextView
+        android:id="@+id/tvStatus"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/status_bg"
+        android:gravity="center"
+        android:text="콜 대기중\n···"
+        android:textColor="#333333"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintDimensionRatio="1:1.3"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/headerCard" />
+
+    <!-- 3) 기본 버튼 그룹 (콜 대기중, 멈추기, 퇴근, 테스트콜) -->
+    <LinearLayout
+        android:id="@+id/llMainButtons"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="12dp"
+        app:layout_constraintTop_toBottomOf="@id/tvStatus"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- 콜 받기 -->
+        <ImageButton
+            android:id="@+id/btnResumeCall"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:src="@drawable/startcaliing"
+            android:background="@null"
+            android:contentDescription="콜 받기"
+            android:scaleType="fitCenter" />
+
+        <!-- 콜 멈추기 -->
+        <ImageButton
+            android:id="@+id/btnStopCall"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="8dp"
+            android:src="@drawable/stopcalling"
+            android:background="@null"
+            android:contentDescription="콜 멈추기"
+            android:scaleType="fitCenter"/>
+
+        <!-- 퇴근하기 -->
+        <ImageButton
+            android:id="@+id/btnEndWork"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="8dp"
+            android:src="@drawable/stopworking"
+            android:background="@null"
+            android:contentDescription="퇴근하기"
+            android:scaleType="fitCenter"/>
+
+        <!-- 테스트용 콜 생성 버튼 -->
+        <Button
+            android:id="@+id/btnTestCall"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="8dp"
+            android:text="테스트 콜"
+            android:background="@drawable/btn_outline"
+            android:textColor="#000000"/>
+    </LinearLayout>
+
+    <!-- 4) 인커밍 콜 컨테이너 (기본 숨김) -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cvIncomingCall"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        app:cardCornerRadius="8dp"
+        android:layout_marginTop="12dp"
+        app:layout_constraintTop_toBottomOf="@id/tvStatus"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintDimensionRatio="1:1.3">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/tvIncomingFare"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="배송료 0원"
+                android:textSize="18sp"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:id="@+id/tvIncomingPickup"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="출발지"
+                android:layout_marginTop="8dp"/>
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_arrow_down"
+                android:layout_marginTop="4dp"/>
+
+            <TextView
+                android:id="@+id/tvIncomingDropoff"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="도착지"
+                android:layout_marginTop="4dp"/>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- 5) 인커밍 콜 액션 버튼 -->
+    <LinearLayout
+        android:id="@+id/llIncomingButtons"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:visibility="gone"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@id/cvIncomingCall"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageButton
+            android:id="@+id/btnRejectCall"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="48dp"
+            android:src="@drawable/call_reject"
+            android:background="@null"
+            android:contentDescription="거절"
+            android:scaleType="fitCenter"/>
+
+        <ImageButton
+            android:id="@+id/btnAcceptCall"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="48dp"
+            android:src="@drawable/call_accept"
+            android:background="@null"
+            android:contentDescription="콜 수락"
+            android:scaleType="fitCenter"
+            android:layout_marginStart="8dp"/>
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

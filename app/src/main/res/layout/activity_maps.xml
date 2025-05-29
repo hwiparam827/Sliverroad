@@ -1,0 +1,123 @@
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- 지도 전체 -->
+
+    <!-- 상단 안내 시작 버튼 -->
+    <org.osmdroid.views.MapView
+        android:id="@+id/osm_map"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <ImageButton
+        android:id="@+id/btnStartNavigation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/route_navigate"
+        android:background="@null"
+        android:contentDescription="경로 안내" />
+
+    <LinearLayout
+        android:id="@+id/pathSelectionBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:gravity="center"
+        android:background="#FFFFFF">
+
+        <ImageButton
+            android:id="@+id/btnShortest"
+            android:layout_width="0dp"
+            android:layout_height="64dp"
+            android:layout_weight="1"
+            android:src="@drawable/shortest_bt"
+            android:background="@null"
+            android:contentDescription="빠른 길"
+            android:scaleType="fitCenter" />
+
+        <ImageButton
+            android:id="@+id/btnSafe"
+            android:layout_width="0dp"
+            android:layout_height="64dp"
+            android:layout_weight="1"
+            android:src="@drawable/safeppath_bt"
+            android:background="@null"
+            android:contentDescription="안전 길"
+            android:scaleType="fitCenter" />
+
+        <ImageButton
+            android:id="@+id/btnBench"
+            android:layout_width="0dp"
+            android:layout_height="64dp"
+            android:layout_weight="1"
+            android:src="@drawable/bench_bt"
+            android:background="@null"
+            android:contentDescription="편한 길"
+            android:scaleType="fitCenter" />
+    </LinearLayout>
+
+
+    <!-- 안내 화면 오버레이 -->
+    <LinearLayout
+        android:id="@+id/navigationOverlay"
+        android:visibility="gone"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="16dp">
+
+        <!-- 헤더 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:background="@drawable/card_bg"
+            android:padding="8dp">
+
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/silverroad_logo" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="상품 수령 경로"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginStart="12dp"/>
+        </LinearLayout>
+
+        <!-- 빈 공간 (지도 보여주는 영역) -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <ImageButton
+            android:id="@+id/btnCallClient"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:src="@drawable/call_bt"
+            android:background="@null"
+            android:contentDescription="의뢰인에게 전화 걸기"
+            android:layout_marginTop="12dp"
+            android:scaleType="fitCenter" />
+
+        <ImageButton
+            android:id="@+id/btnComplete"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:src="@drawable/complite_accept"
+            android:background="@null"
+            android:contentDescription="수령 완료"
+            android:layout_marginTop="8dp"
+            android:scaleType="fitCenter" />
+
+    </LinearLayout>
+
+</RelativeLayout>
