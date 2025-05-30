@@ -19,7 +19,7 @@
         <!-- 1) 기사 정보 카드 -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="80dp"
             android:layout_marginBottom="16dp"
             android:background="@drawable/card_bg"
             android:gravity="center_vertical"
@@ -55,14 +55,14 @@
             android:gravity="center"
             android:text="출근 대기 중"
             android:textColor="#333333"
-            android:textSize="20sp"
+            android:textSize="50sp"
             android:textStyle="bold" />
 
         <!-- 3) 배송 내역 이미지 버튼 -->
         <ImageButton
             android:id="@+id/btnHistory"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
+            android:layout_height="80dp"
             android:layout_marginBottom="8dp"
             android:background="@null"
             android:clickable="true"
@@ -75,7 +75,7 @@
         <ImageButton
             android:id="@+id/btnStartWork"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
+            android:layout_height="80dp"
             android:background="@null"
             android:clickable="true"
             android:contentDescription="출근하기"

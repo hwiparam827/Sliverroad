@@ -13,11 +13,13 @@
 
     <ImageButton
         android:id="@+id/btnStartNavigation"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:src="@drawable/route_navigate"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="130dp"
         android:background="@null"
-        android:contentDescription="경로 안내" />
+        android:contentDescription="경로 안내"
+        android:src="@drawable/route_navigate" />
 
     <LinearLayout
         android:id="@+id/pathSelectionBar"
@@ -32,7 +34,7 @@
         <ImageButton
             android:id="@+id/btnShortest"
             android:layout_width="0dp"
-            android:layout_height="64dp"
+            android:layout_height="100dp"
             android:layout_weight="1"
             android:src="@drawable/shortest_bt"
             android:background="@null"
@@ -42,7 +44,7 @@
         <ImageButton
             android:id="@+id/btnSafe"
             android:layout_width="0dp"
-            android:layout_height="64dp"
+            android:layout_height="100dp"
             android:layout_weight="1"
             android:src="@drawable/safeppath_bt"
             android:background="@null"
@@ -52,7 +54,7 @@
         <ImageButton
             android:id="@+id/btnBench"
             android:layout_width="0dp"
-            android:layout_height="64dp"
+            android:layout_height="100dp"
             android:layout_weight="1"
             android:src="@drawable/bench_bt"
             android:background="@null"

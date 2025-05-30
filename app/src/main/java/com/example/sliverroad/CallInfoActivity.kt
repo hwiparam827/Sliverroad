@@ -4,7 +4,9 @@ package com.example.sliverroad
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.text.Html.ImageGetter
 import android.widget.Button
+import android.widget.ImageButton
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 
@@ -21,7 +23,7 @@ data class CallRequest(
     val itemWeight: Double,
     val clientName: String,
     val clientPhone: String,
-    val pickupTime: String,
+    val pickupdate: String,
     val pickupAddr: String,
     val receiverName: String,
     val receiverPhone: String,
@@ -38,13 +40,13 @@ class CallInfoActivity : AppCompatActivity() {
     private lateinit var tvItemWeight:  TextView
     private lateinit var tvClientName:  TextView
     private lateinit var tvClientPhone: TextView
-    private lateinit var tvPickupTime:  TextView
+    private lateinit var tvPickupdate:  TextView
     private lateinit var tvPickupAddr:  TextView
     private lateinit var tvReceiverName:  TextView
     private lateinit var tvReceiverPhone: TextView
     private lateinit var tvDropoffAddr:   TextView
     private lateinit var tvNote:        TextView
-    private lateinit var btnNavigate:  Button
+    private lateinit var btnStartNavigation: ImageButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,13 +60,13 @@ class CallInfoActivity : AppCompatActivity() {
         tvItemWeight = findViewById(R.id.tvItemWeight)
         tvClientName = findViewById(R.id.tvClientName)
         tvClientPhone = findViewById(R.id.tvClientPhone)
-        tvPickupTime = findViewById(R.id.tvPickupTime)
+        tvPickupdate = findViewById(R.id.tvPickupdate)
         tvPickupAddr = findViewById(R.id.tvPickupAddr)
         tvReceiverName = findViewById(R.id.tvReceiverName)
         tvReceiverPhone = findViewById(R.id.tvReceiverPhone)
         tvDropoffAddr = findViewById(R.id.tvDropoffAddr)
         tvNote = findViewById(R.id.tvNote)
-        btnNavigate = findViewById(R.id.btnNavigate)
+        btnStartNavigation = findViewById(R.id.btnStartNavigation)
 
         // 2) 목업 데이터 생성
         val mockRequest = CallRequest(
@@ -78,7 +80,7 @@ class CallInfoActivity : AppCompatActivity() {
             itemWeight = 1.2,
             clientName = "홍길동",
             clientPhone = "010-1234-5678",
-            pickupTime = "오전 10:30",
+            pickupdate = "2025-05-30",
             pickupAddr = "서울 강남구 역삼동 123-4",
             receiverName = "김아무개",
             receiverPhone = "010-8765-4321",
@@ -93,7 +95,7 @@ class CallInfoActivity : AppCompatActivity() {
         tvItemWeight.text = "${mockRequest.itemWeight}kg"
         tvClientName.text = mockRequest.clientName
         tvClientPhone.text = mockRequest.clientPhone
-        tvPickupTime.text = mockRequest.pickupTime
+        tvPickupdate.text = mockRequest.pickupdate
         tvPickupAddr.text = mockRequest.pickupAddr
         tvReceiverName.text = mockRequest.receiverName
         tvReceiverPhone.text = mockRequest.receiverPhone
@@ -101,9 +103,9 @@ class CallInfoActivity : AppCompatActivity() {
         tvNote.text = mockRequest.note ?: ""
         tvFare.text = "배송료 ${mockRequest.fare}원"
 
-        btnNavigate.setOnClickListener {
+        btnStartNavigation.setOnClickListener {
             val intent = Intent(this, OsmMapActivity::class.java)
-            intent.putExtra("clientPhone", "010-1234-5678")
+            intent.putExtra("${mockRequest.clientName}", "${mockRequest.clientPhone}")
             startActivity(intent)
         }
     }}

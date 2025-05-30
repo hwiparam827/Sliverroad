@@ -160,6 +160,7 @@ class CallWaitingActivity : AppCompatActivity() {
 
         cvIncomingCall.visibility     = View.VISIBLE
         llIncomingButtons.visibility  = View.VISIBLE
+
     }
 
     private fun hideIncomingCall() {

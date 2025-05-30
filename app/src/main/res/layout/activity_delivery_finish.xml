@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#FFFFFF"
+    android:padding="16dp">
+
+    <!-- 상단: 기사 사진 + 배송 완료 텍스트 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/card_bg"
+        android:padding="12dp"
+        android:layout_marginBottom="24dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="기사\n사진"
+            android:background="#D9D9D9"
+            android:gravity="center"
+            android:padding="8dp"
+            android:textSize="10sp" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="배송 완료"
+            android:textSize="30sp"
+            android:textStyle="bold"
+            android:gravity="center" />
+    </LinearLayout>
+
+    <!-- 사진 등록 영역 -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:layout_marginBottom="24dp"
+        android:background="#F6F6F6"
+        android:foreground="?attr/selectableItemBackground"
+        android:padding="16dp">
+
+        <!-- 실제 사진이 표시될 곳 -->
+        <ImageView
+            android:id="@+id/imagePreview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop" />
+
+        <!-- 기본 플러스 아이콘 -->
+        <ImageButton
+            android:id="@+id/btnPhotoAdd"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_plus"
+            android:layout_gravity="center"
+            android:background="@android:color/transparent"
+            android:contentDescription="사진 추가 버튼" />
+    </FrameLayout>
+
+    <!-- 배송 정보 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="#E3E6EA"
+        android:padding="16dp"
+        android:layout_marginBottom="24dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="배송 일시"
+                android:textStyle="bold"
+                android:textSize="30sp"
+                 />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:text="2025.05.11 12:40"
+                android:textSize="30sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="배송 정보"
+                android:textStyle="bold"
+                android:textSize="30sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:text="쌀 20KG"
+                android:textSize="30sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- 배송 완료 버튼 -->
+    <ImageButton
+        android:id="@+id/btn_finish"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:contentDescription="배송 완료"
+        android:src="@drawable/dlivery_check"
+        android:background="@null"
+        android:layout_marginTop="8dp"
+        android:scaleType="fitCenter" />
+
+</LinearLayout>

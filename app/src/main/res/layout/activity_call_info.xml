@@ -19,19 +19,22 @@
             android:orientation="horizontal"
             android:padding="12dp">
 
-            <ImageView
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_marginEnd="12dp"
-                android:contentDescription="기사 사진"
-                android:src="@drawable/silverroad_logo" />
-
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:text="기사\n사진"
+                android:background="#D9D9D9"
+                android:gravity="center"
+                android:padding="8dp"
+                android:textSize="12sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
                 android:text="콜 정보"
-                android:textColor="#222222"
-                android:textSize="18sp"
+                android:textColor="#000000"
+                android:textSize="30sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
@@ -40,36 +43,46 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
+            android:background="#FFFFFF"
             app:cardCornerRadius="8dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="12dp">
+                android:padding="12dp"
+                android:background="#FFFFFF">
 
                 <TextView
                     android:id="@+id/tvItemType"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:textSize="20sp"
+                    android:textColor="#000000"
                     android:text="물품 종류" />
 
                 <TextView
                     android:id="@+id/tvItemName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:textSize="20sp"
+                    android:textColor="#000000"
                     android:text="물품명" />
 
                 <TextView
                     android:id="@+id/tvItemValue"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:textSize="20sp"
+                    android:textColor="#000000"
                     android:text="물품 액면가" />
 
                 <TextView
                     android:id="@+id/tvItemWeight"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:textSize="20sp"
+                    android:textColor="#000000"
                     android:text="물품 무게" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
@@ -79,36 +92,46 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
+            android:background="#FFFFFF"
             app:cardCornerRadius="8dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="12dp">
+                android:padding="12dp"
+                android:background="#FFFFFF">
 
                 <TextView
                     android:id="@+id/tvClientName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:textSize="20sp"
+                    android:textColor="#000000"
                     android:text="의뢰인" />
 
                 <TextView
                     android:id="@+id/tvClientPhone"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:textSize="20sp"
+                    android:textColor="#000000"
                     android:text="의뢰인 연락처" />
 
                 <TextView
-                    android:id="@+id/tvPickupTime"
+                    android:id="@+id/tvPickupdate"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:textSize="20sp"
+                    android:textColor="#000000"
                     android:text="수령 시간" />
 
                 <TextView
                     android:id="@+id/tvPickupAddr"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:textSize="20sp"
+                    android:textColor="#000000"
                     android:text="수령 장소" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
@@ -118,30 +141,38 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
+            android:background="#FFFFFF"
             app:cardCornerRadius="8dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="12dp">
+                android:padding="12dp"
+                android:background="#FFFFFF">
 
                 <TextView
                     android:id="@+id/tvReceiverName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:textSize="20sp"
+                    android:textColor="#000000"
                     android:text="인수인" />
 
                 <TextView
                     android:id="@+id/tvReceiverPhone"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:textSize="20sp"
+                    android:textColor="#000000"
                     android:text="인수인 연락처" />
 
                 <TextView
                     android:id="@+id/tvDropoffAddr"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:textSize="20sp"
+                    android:textColor="#000000"
                     android:text="배달 장소" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
@@ -151,35 +182,48 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            app:cardCornerRadius="8dp">
+            app:cardCornerRadius="8dp"
+            app:cardBackgroundColor="#FFFFFF">
 
-            <TextView
-                android:id="@+id/tvNote"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="12dp"
-                android:text="깨질 수 있으니 조심히 다뤄 주세요."
-                android:textColor="#333333"/>
+                android:orientation="vertical"
+                android:background="#FFFFFF"
+                android:padding="12dp">
+
+                <TextView
+                    android:id="@+id/tvNote"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="20sp"
+                    android:textColor="#000000"
+                    android:text="깨질 수 있으니 조심히 다뤄 주세요." />
+            </LinearLayout>
         </androidx.cardview.widget.CardView>
 
         <!-- 6) 배송료 + 경로 안내 버튼 -->
+
         <TextView
             android:id="@+id/tvInfoFare"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="100dp"
+            android:textColor="#000000"
             android:text="배송료 0원"
-            android:textSize="18sp"
-            android:textStyle="bold"/>
+            android:textSize="30sp"
+            android:textStyle="bold" />
 
-        <Button
-            android:id="@+id/btnNavigate"
+
+        <ImageButton
+            android:id="@+id/btnStartNavigation"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginTop="8dp"
-            android:text="경로 안내"
-            android:background="@drawable/btn_solid_black"
-            android:textColor="#FFFFFF"/>
-
+            android:layout_height="100dp"
+            android:layout_marginTop="30dp"
+            android:background="@null"
+            android:layout_alignParentBottom="true"
+            android:contentDescription="경로안내"
+            android:scaleType="fitCenter"
+            android:src="@drawable/route_navigate" />
     </LinearLayout>
 </ScrollView>
