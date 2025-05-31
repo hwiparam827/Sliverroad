@@ -70,14 +70,24 @@ class CallWaitingActivity : AppCompatActivity() {
         btnAcceptCall      = findViewById(R.id.btnAcceptCall)
 
 
-        // 콜 멈춤 / 대기중
         btnStopCall.setOnClickListener {
-            sendingEnabled = false
-            tvStatus.text = "콜 멈춤"
+            // 상태 텍스트 업데이트
+            tvStatus.text = "콜 멈춤\n..."
+
+            // 콜 시작 버튼 보이기
+            btnResumeCall.visibility = View.VISIBLE
+
+            // 콜 멈춤 버튼 숨기기
+            btnStopCall.visibility = View.GONE
+
+            // 필요시 인커밍 콜 UI도 숨김 처리
+            cvIncomingCall.visibility = View.GONE
+            llIncomingButtons.visibility = View.GONE
         }
         btnResumeCall.setOnClickListener {
-            sendingEnabled = true
             tvStatus.text = "콜 대기중\n···"
+            btnResumeCall.visibility = View.GONE
+            btnStopCall.visibility = View.VISIBLE
         }
 
         // 퇴근

@@ -57,7 +57,8 @@ class DeliveryMapActivity : AppCompatActivity() {
         val pathSelectionBar = findViewById<LinearLayout>(R.id.pathSelectionBar)
         val btnCallReceiver = findViewById<ImageButton>(R.id.btnCallClient)
         val btnDeliveryComplete = findViewById<ImageButton>(R.id.btnComplete)
-
+        val headerCard = findViewById<LinearLayout>(R.id.headerCard)
+        val headerCard2 = findViewById<LinearLayout>(R.id.headerCard2)
         checkLocationPermissionAndStartUpdates()
 
         clientPhoneNumber = intent.getStringExtra("clientPhone") ?: "01012345678"
@@ -66,6 +67,8 @@ class DeliveryMapActivity : AppCompatActivity() {
             btnStartNavigation.visibility = android.view.View.GONE
             pathSelectionBar.visibility = android.view.View.GONE
             navigationOverlay.visibility = android.view.View.VISIBLE
+            headerCard.visibility = android.view.View.GONE
+            headerCard2.visibility = android.view.View.VISIBLE
         }
 
         btnCallReceiver.setOnClickListener {

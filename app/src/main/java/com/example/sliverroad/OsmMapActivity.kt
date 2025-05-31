@@ -53,6 +53,8 @@ class OsmMapActivity : AppCompatActivity() {
         val pathSelectionBar = findViewById<LinearLayout>(R.id.pathSelectionBar)
         val btnCallClient = findViewById<ImageButton>(R.id.btnCallClient)
         val btnComplete = findViewById<ImageButton>(R.id.btnComplete)
+        val headerCard = findViewById<LinearLayout>(R.id.headerCard)
+        val headerCard2 = findViewById<LinearLayout>(R.id.headerCard2)
 
         checkLocationPermissionAndStartUpdates()
 
@@ -61,7 +63,10 @@ class OsmMapActivity : AppCompatActivity() {
         btnStartNavigation.setOnClickListener {
             btnStartNavigation.visibility = android.view.View.GONE
             pathSelectionBar.visibility = android.view.View.GONE
+            headerCard.visibility = android.view.View.GONE
             navigationOverlay.visibility = android.view.View.VISIBLE
+            headerCard2.visibility = android.view.View.VISIBLE
+
         }
 
         btnCallClient.setOnClickListener {

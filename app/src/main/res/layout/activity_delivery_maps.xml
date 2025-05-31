@@ -1,35 +1,61 @@
-<RelativeLayout
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- 지도 전체 -->
+    <!-- 헤더 카드 -->
+    <LinearLayout
+        android:id="@+id/headerCard"
+        android:layout_width="0dp"
+        android:layout_height="80dp"
+        android:background="@drawable/card_bg"
+        android:orientation="horizontal"
+        android:padding="12dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-    <!-- 상단 안내 시작 버튼 -->
+        <ImageView
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="12dp"
+            android:contentDescription="기사 사진"
+            android:src="@drawable/silverroad_logo" />
+
+        <TextView
+            android:id="@+id/tvDriverName"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="상품 경로 선택"
+            android:textColor="#222222"
+            android:textSize="30sp"
+            android:gravity="center"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- 지도 -->
     <org.osmdroid.views.MapView
         android:id="@+id/osm_map"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/headerCard"
+        app:layout_constraintBottom_toTopOf="@id/pathSelectionBar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-    <ImageButton
-        android:id="@+id/btnStartNavigation"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_marginBottom="130dp"
-        android:background="@null"
-        android:contentDescription="경로 안내"
-        android:src="@drawable/route_navigate" />
-
+    <!-- 경로 선택 바 -->
     <LinearLayout
         android:id="@+id/pathSelectionBar"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
         android:orientation="horizontal"
         android:padding="8dp"
         android:gravity="center"
-        android:background="#FFFFFF">
+        android:background="#FFFFFF"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <ImageButton
             android:id="@+id/btnShortest"
@@ -62,36 +88,60 @@
             android:scaleType="fitCenter" />
     </LinearLayout>
 
+    <!-- 경로 안내 시작 버튼 -->
+    <ImageButton
+        android:id="@+id/btnStartNavigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="130dp"
+        android:background="@null"
+        android:contentDescription="경로 안내"
+        android:src="@drawable/route_navigate"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
     <!-- 안내 화면 오버레이 -->
     <LinearLayout
         android:id="@+id/navigationOverlay"
+        android:background="@android:color/transparent"
         android:visibility="gone"
         android:orientation="vertical"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:padding="16dp">
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:padding="16dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <!-- 헤더 -->
         <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:id="@+id/headerCard2"
+            android:visibility="gone"
             android:background="@drawable/card_bg"
-            android:padding="8dp">
+            android:orientation="horizontal"
+            android:padding="12dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
 
             <ImageView
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginEnd="12dp"
+                android:contentDescription="기사 사진"
                 android:src="@drawable/silverroad_logo" />
 
+
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="상품 수령 경로"
-                android:textSize="18sp"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="상품 경로 안내"
+                android:textColor="#222222"
+                android:layout_marginStart="12dp"
+                android:textSize="30sp"
                 android:textStyle="bold"
-                android:layout_marginStart="12dp"/>
+                android:gravity="center"
+
+                />
         </LinearLayout>
 
         <!-- 빈 공간 (지도 보여주는 영역) -->
@@ -101,9 +151,9 @@
             android:layout_weight="1" />
 
         <ImageButton
-            android:id="@+id/btnCallReceiver"
+            android:id="@+id/btnCallClient"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
+            android:layout_height="100dp"
             android:src="@drawable/call_bt"
             android:background="@null"
             android:contentDescription="의뢰인에게 전화 걸기"
@@ -111,15 +161,14 @@
             android:scaleType="fitCenter" />
 
         <ImageButton
-            android:id="@+id/btnDeliveryComplete"
+            android:id="@+id/btnComplete"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:src="@drawable/complite_dlivery"
+            android:layout_height="100dp"
+            android:src="@drawable/complite_accept"
             android:background="@null"
-            android:contentDescription="배송 완료"
+            android:contentDescription="수령 완료"
             android:layout_marginTop="8dp"
             android:scaleType="fitCenter" />
-
     </LinearLayout>
 
-</RelativeLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
