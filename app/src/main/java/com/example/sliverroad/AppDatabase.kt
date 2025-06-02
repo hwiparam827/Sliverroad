@@ -13,22 +13,6 @@ class AppDatabase private constructor() {
                 emptyList()
         }
 
-    // CallRequestDao 더미 구현: 모든 추상 멤버를 오버라이드
-    fun callRequestDao(): CallRequestDao =
-        object : CallRequestDao {
-            override fun findNearestUnHandled(
-                myLat: Double,
-                myLng: Double
-            ): Flow<CallRequest?> =
-                flowOf(null)
-
-            override suspend fun update(request: CallRequest) {
-                // no-op
-            }
-
-            override suspend fun getById(id: Int): CallRequest? =
-                null
-        }
 
     companion object {
         @Volatile private var INSTANCE: AppDatabase? = null

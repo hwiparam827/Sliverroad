@@ -5,10 +5,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.example.sliverroad.data.DeliveryHistory
+import com.example.sliverroad.data.DeliveryHistoryItem  // 새 데이터 모델로 교체
 
 class HistoryAdapter(
-    private var items: List<DeliveryHistory>
+    private var items: List<DeliveryHistoryItem>
 ) : RecyclerView.Adapter<HistoryAdapter.HistoryVH>() {
 
     inner class HistoryVH(view: View) : RecyclerView.ViewHolder(view) {
@@ -16,10 +16,10 @@ class HistoryAdapter(
         private val tvType  = view.findViewById<TextView>(R.id.tvType)
         private val tvFee   = view.findViewById<TextView>(R.id.tvFee)
 
-        fun bind(item: DeliveryHistory) {
-            tvRoute.text = "${item.fromLocation}  ›  ${item.toLocation}"
-            tvType.text  = item.packageType
-            tvFee.text   = "배송료 %,d원".format(item.fee)
+        fun bind(item: DeliveryHistoryItem) {
+            tvRoute.text = "${item.pickup_location}  ›  ${item.delivery_address}"
+            tvType.text  = item.item_type
+            tvFee.text   = "배송 완료"  // 서버 응답에 금액 없음 → 상태 표시로 대체
         }
     }
 
@@ -35,8 +35,7 @@ class HistoryAdapter(
 
     override fun getItemCount(): Int = items.size
 
-    /** 새 데이터를 바인딩하려면 이 메서드 호출 */
-    fun submitList(newList: List<DeliveryHistory>) {
+    fun submitList(newList: List<DeliveryHistoryItem>) {
         items = newList
         notifyDataSetChanged()
     }

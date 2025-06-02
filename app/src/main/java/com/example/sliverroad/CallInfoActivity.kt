@@ -5,31 +5,25 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.ImageButton
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.example.sliverroad.api.ApiClient
+import com.example.sliverroad.api.ApiClient.apiService
 import com.example.sliverroad.data.CallRequestDetailResponse
+import com.example.sliverroad.model.FindRouteResponse
+import com.google.gson.Gson
+import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import android.net.Uri
-import android.widget.Toast
-import androidx.lifecycle.lifecycleScope
-import com.example.sliverroad.data.AcceptCallRequest
-import com.google.gson.Gson
-import kotlinx.coroutines.launch
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.RequestBody.Companion.toRequestBody
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import java.util.TimeZone
-
 
 class CallInfoActivity : AppCompatActivity() {
 
-    // Intent로 전달받을 토큰과 requestId
+    // Intent로 전달받을 토큰과 requestId, CallRequest
     private lateinit var accessToken: String
     private lateinit var requestId: String
+    private var assignmentId: Int? = null
 
     // 뷰 바인딩용 멤버 변수
     private lateinit var tvFare: TextView
@@ -51,19 +45,25 @@ class CallInfoActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_call_info)
 
-        // 1) 인텐트로부터 토큰과 requestId 가져오기
-        // ✅ 인텐트에서 두 값 모두 가져오기
+        // ───────────────────────────────────────────────────────────────────
+        // 1) Intent에서 CallRequest 객체와 accessToken, requestId 꺼내기
+        // ───────────────────────────────────────────────────────────────────
         accessToken = intent.getStringExtra("access_token") ?: ""
         requestId = intent.getStringExtra("request_id") ?: ""
+        assignmentId = intent.getIntExtra("assignment_id", -1)
 
-
+        // ───────────────────────────────────────────────────────────────────
+        // 2) 필수 값 존재 여부 체크
+        // ───────────────────────────────────────────────────────────────────
         if (accessToken.isBlank() || requestId.isBlank()) {
             Log.e("CallInfo", "토큰 또는 requestId가 없습니다.")
             finish()
             return
         }
 
-        // 2) 뷰 바인딩
+        // ───────────────────────────────────────────────────────────────────
+        // 3) 뷰 바인딩
+        // ───────────────────────────────────────────────────────────────────
         tvFare = findViewById(R.id.tvInfoFare)
         tvItemType = findViewById(R.id.tvItemType)
         tvItemName = findViewById(R.id.tvItemName)
@@ -79,7 +79,9 @@ class CallInfoActivity : AppCompatActivity() {
         tvNote = findViewById(R.id.tvNote)
         btnStartNavigation = findViewById(R.id.btnStartNavigation)
 
-        // 3) 서버에서 상세 정보 가져오기
+        // ───────────────────────────────────────────────────────────────────
+        // 4) 서버에서 상세 정보 가져오기
+        // ───────────────────────────────────────────────────────────────────
         fetchRequestDetail()
     }
 
@@ -87,21 +89,18 @@ class CallInfoActivity : AppCompatActivity() {
         val bearer = "Bearer $accessToken"
         lifecycleScope.launch {
             try {
-                val response = ApiClient.apiService.getDeliveryDetail(bearer,requestId ) // suspend 함수 호출
+                val response = ApiClient.apiService.getDeliveryDetail(bearer, requestId)
                 if (response.isSuccessful && response.body() != null) {
+                    Log.d("CallInfo", "상세 조회 성공, bindDetail 호출")
                     bindDetail(response.body()!!)
                 } else {
-                    Log.e("Detail", "상세 조회 실패: HTTP ${response.code()}")
-
+                    Log.e("CallInfo", "상세 조회 실패: HTTP ${response.code()}")
                 }
             } catch (e: Exception) {
-                Log.e("Detail", "상세 조회 오류", e)
-
+                Log.e("CallInfo", "상세 조회 오류", e)
             }
         }
-
     }
-
 
     private fun bindDetail(detail: CallRequestDetailResponse) {
         // 서버에서 받은 데이터를 화면에 뿌리기
@@ -117,61 +116,82 @@ class CallInfoActivity : AppCompatActivity() {
         tvReceiverPhone.text = "수취인 연락처: ${detail.recipient_phone}"
         tvDropoffAddr.text = "배달 장소: ${detail.address}"
         tvNote.text = "지침: ${detail.instructions}"
+        // tvFare.text = "배송료: ${detail.fare}"  // 서버 응답에 fare가 있으면 사용
 
-        // 만약 배송요금(fare) 필드가 응답 JSON에 없다면 주석 처리하거나 제거하세요.
-        // tvFare.text = "배송료: ${detail.fare}"
-
-        // — 사진 배열(detail.photos)도 필요하다면, 추후에 추가할 수 있습니다.
-
-        // 네비게이션 버튼 클릭 시 지도 앱 또는 자체 맵 화면으로 이동
+        // ───────────────────────────────────────────────────────────────────
+        // 5) “경로 안내” 버튼 클릭 시: 먼저 “pickup” 경로 요청 → 성공 시 OsmMapActivity로 이동
+        // ───────────────────────────────────────────────────────────────────
         btnStartNavigation.setOnClickListener {
-            detail?.let { detailInfo ->
-                // 콜 수락 API 호출
-                val acceptRequest = AcceptCallRequest(
-                    id = 1,  // 여기 id는 String이니 API가 String 받는지 확인 필요
-                    assigned_at = getCurrentIsoTime()
-                )
+            val body = mapOf("destination_type" to "pickup")
+            apiService.findRoute(
+                authHeader = "Bearer $accessToken",
+                requestId = requestId,
+                body = body
+            ).enqueue(object: Callback<FindRouteResponse> {
+                override fun onResponse(
+                    call: Call<FindRouteResponse>,
+                    response: Response<FindRouteResponse>
+                ) {
+                    if (response.isSuccessful) {
+                        // 네트워크 응답으로 받아온 객체
+                        val data = response.body()!!
 
-                val gson = Gson()
-                val json = gson.toJson(acceptRequest)
-                val requestBody = json.toRequestBody("application/json; charset=utf-8".toMediaType())
+                        // 1) 예시: 받을 수 있는 key들을 로그에 찍어보기
+                        Log.d("Route", "request_id = ${data.request_id}")
+                        Log.d("Route", "requester_phone = ${data.requester_phone}")
+                        Log.d("Route", "origin = ${data.origin.latitude}, ${data.origin.longitude}")
+                        Log.d("Route", "destination = ${data.destination.latitude}, ${data.destination.longitude}")
+                        Log.d("Route", "destination_type = ${data.destination_type}")
 
-                ApiClient.apiService.acceptCall("Bearer $accessToken", 1, requestBody)
-                    .enqueue(object : Callback<AcceptCallRequest> {
-                        override fun onResponse(call: Call<AcceptCallRequest>, response: Response<AcceptCallRequest>) {
-                            if (response.isSuccessful) {
-                                Log.d("API", "콜 수락 성공: ${response.body()}")
-                                Toast.makeText(this@CallInfoActivity, "콜 수락 성공", Toast.LENGTH_SHORT).show()
+                        // 2) 네 가지 경로 중에서 “shortest” 경로 정보 꺼내기
+                        val pickupInfo = data.routes["pickup"]
+                           if (pickupInfo != null) {
 
-                                // 콜 수락 성공 후 네비게이션 화면으로 이동
-                                val intent = Intent(this@CallInfoActivity, OsmMapActivity::class.java)
-                                intent.putExtra("의뢰인 연락처", detailInfo.requester_phone)
-                                intent.putExtra("수취인 연락처", detailInfo.recipient_phone)
-                                intent.putExtra("access_token", accessToken)
-                                intent.putExtra("access_token", requestId)
-                                startActivity(intent)
+                                   // 보행 좌표, 벤치 좌표 등은 pickupInfo를 통해 읽어야 합니다.
+                                   val walkCoords: List<List<Double>> = pickupInfo.walk_route.coordinates
+                                   if (walkCoords.isNotEmpty()) {
+                                           val firstLat = walkCoords[0][0]
+                                           val firstLng = walkCoords[0][1]
+                                           Log.d("Route", "첫 좌표 (pickup): lat=$firstLat, lng=$firstLng")
+                                        }
+                               val benches: List<List<Double>> = pickupInfo.benches
+                               Log.d("Route", "벤치 개수 (pickup) = ${benches.size}")
+                               }
 
-                            } else {
-                                Log.e("API", "콜 수락 실패: ${response.code()} - ${response.errorBody()?.string()}")
-                                Toast.makeText(this@CallInfoActivity, "콜 수락 실패", Toast.LENGTH_SHORT).show()
-                            }
+                        // 4) (선택) OsmMapActivity로 보낼 때 JSON으로 통째로 넘기고 싶다면 Gson 사용
+                        val gson = Gson()
+                        val jsonAllRoutes = gson.toJson(data.routes)    // Map<String, RouteInfo> 전체를 JSON string으로
+                        val originJson      = gson.toJson(data.origin)
+                        val destinationJson = gson.toJson(data.destination)
+
+
+                        val intent = Intent(this@CallInfoActivity, OsmMapActivity::class.java).apply {
+                            putExtra("access_token", accessToken)
+                            putExtra("request_id", requestId)
+                            putExtra("assignment_id", assignmentId)
+
+                            // 길찾기 결과를 JSON String으로 넘기는 예시
+                            putExtra("routes_json", jsonAllRoutes)
+                            putExtra("origin_json", originJson)
+                            putExtra("destination_json", destinationJson)
                         }
+                        startActivity(intent)
 
-                        override fun onFailure(call: Call<AcceptCallRequest>, t: Throwable) {
-                            Log.e("API", "콜 수락 실패: ${t.message}")
-                            Toast.makeText(this@CallInfoActivity, "콜 수락 실패", Toast.LENGTH_SHORT).show()
-                        }
-                    })
-            } ?: run {
-                Toast.makeText(this@CallInfoActivity, "상세 정보가 없습니다.", Toast.LENGTH_SHORT).show()
-            }
+                    } else {
+                        Log.e("API", "findRoute 실패: HTTP ${response.code()} / ${response.errorBody()?.string()}")
+                        Toast.makeText(this@CallInfoActivity, "경로 조회에 실패했습니다.", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                override fun onFailure(call: Call<FindRouteResponse>, t: Throwable) {
+                    Log.e("API", "findRoute 네트워크 오류", t)
+                    Toast.makeText(this@CallInfoActivity, "경로 조회 네트워크 오류", Toast.LENGTH_SHORT).show()
+                }
+            })
         }
 
 
-    }
-    fun getCurrentIsoTime(): String {
-        val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
-        sdf.timeZone = TimeZone.getTimeZone("UTC")
-        return sdf.format(Date())
-    }
-}
+}}
+
+
+

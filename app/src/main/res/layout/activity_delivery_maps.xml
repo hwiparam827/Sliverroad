@@ -6,6 +6,7 @@
 
     <!-- 헤더 카드 -->
     <LinearLayout
+
         android:id="@+id/headerCard"
         android:layout_width="0dp"
         android:layout_height="80dp"
@@ -149,6 +150,10 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1" />
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
 
         <ImageButton
             android:id="@+id/btnCallClient"
@@ -161,14 +166,18 @@
             android:scaleType="fitCenter" />
 
         <ImageButton
-            android:id="@+id/btnComplete"
+            android:id="@+id/btnComplete2"
             android:layout_width="match_parent"
             android:layout_height="100dp"
             android:src="@drawable/complite_accept"
             android:background="@null"
             android:contentDescription="수령 완료"
             android:layout_marginTop="8dp"
-            android:scaleType="fitCenter" />
+            android:scaleType="fitCenter"
+            android:clickable="true"
+            android:focusable="true"
+            android:elevation="20dp"
+            />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

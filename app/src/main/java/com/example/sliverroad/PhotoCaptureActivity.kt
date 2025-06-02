@@ -13,7 +13,10 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import android.Manifest
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import java.io.File
+import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -84,4 +87,5 @@ class PhotoCaptureActivity : AppCompatActivity() {
             }
         }
     }
+
 }

@@ -11,6 +11,7 @@ import com.example.sliverroad.api.ApiClient
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import retrofit2.http.PUT
 
 class MainActivity : AppCompatActivity() {
 
@@ -19,11 +20,15 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        accessToken = intent.getStringExtra("access_token") ?: ""
 
         // 3) 배송 내역 이미지 버튼
         val btnHistory = findViewById<ImageButton>(R.id.btnHistory)
         btnHistory.setOnClickListener {
-            startActivity(Intent(this, HistoryActivity::class.java))
+            val intent = Intent(this@MainActivity, HistoryActivity::class.java).apply {
+                putExtra("access_token", accessToken)
+            }
+            startActivity(intent)
         }
 
         // 4) 출근하기 버튼

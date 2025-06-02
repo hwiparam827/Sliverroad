@@ -1,5 +1,6 @@
 package com.example.sliverroad
 
+import com.example.sliverroad.data.CallRequest
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -16,7 +17,6 @@ import androidx.cardview.widget.CardView
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.sliverroad.api.ApiClient
-import com.example.sliverroad.data.CallRequest
 import com.example.sliverroad.data.LocationRequest
 import com.example.sliverroad.data.LocationResponse
 import com.example.sliverroad.data.LoginStatusRequest
@@ -41,6 +41,7 @@ import retrofit2.Response
 import okhttp3.RequestBody.Companion.toRequestBody
 import com.google.gson.Gson
 import okhttp3.RequestBody
+import java.io.Serializable
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.text.SimpleDateFormat
@@ -143,6 +144,9 @@ class CallWaitingActivity : AppCompatActivity() {
 
         // 4-1) 배달 거절(인커밍 콜 거절) 버튼
         btnRejectCall.setOnClickListener {
+            // 현재 수신된 콜이 없다면 바로 리턴
+            val req = currentRequest ?: return@setOnClickListener
+
             btnResumeCall.visibility = View.VISIBLE
             btnStopCall.visibility = View.GONE
 
@@ -151,22 +155,18 @@ class CallWaitingActivity : AppCompatActivity() {
             btnAcceptCall.visibility = View.GONE
             btnRejectCall.visibility = View.GONE
             hideIncomingCall()
-            // assignmentSocket은 계속 유지 → 다음 요청 수신 가능
-            // --- 여기서 API 호출 ---
 
-            // JSON 변환
+            // API 호출: DeclineCallRequest 생성 시 req.id 사용
             val declineRequest = DeclineCallRequest(
-                id = 1,
+                id = req.id,  // 잘못 쓰여 있던 CallRequest.id → req.id 로 변경
                 assigned_at = getCurrentIsoTime()
             )
-
             val gson = Gson()
             val json = gson.toJson(declineRequest)
-            // 3. JSON 문자열을 RequestBody로 변환
             val requestBody = json.toRequestBody("application/json; charset=utf-8".toMediaType())
 
-            // API 호출
-            ApiClient.apiService.declineCall("Bearer $accessToken", 1, requestBody)
+            ApiClient.apiService
+                .declineCall("Bearer $accessToken", req.id, requestBody)
                 .enqueue(object : Callback<DeclineCallRequest> {
                     override fun onResponse(
                         call: Call<DeclineCallRequest>,
@@ -179,32 +179,57 @@ class CallWaitingActivity : AppCompatActivity() {
                             Log.e("API", "거절 실패: ${response.code()} - ${response.errorBody()?.string()}")
                         }
                     }
-
                     override fun onFailure(call: Call<DeclineCallRequest>, t: Throwable) {
                         Log.e("API", "거절 실패: ${t.message}")
                     }
                 })
-
         }
 
+        // 4-2) 배달 수락(인커밍 콜 수락) 버튼
         btnAcceptCall.setOnClickListener {
             currentRequest?.let { req ->
                 isDelivering = true
 
-                // 콜 할당 WebSocket 닫기 (배달 중엔 새 요청 무시)
-                assignmentSocket?.close(1000, "accepted")
-                assignmentSocket = null
-                Log.d("WebSocket", "🟠 배달 수락 → assignmentSocket 닫음, isDelivering=true")
 
-                // 배달 상세/진행 화면으로 이동
+                // API 호출: AcceptCallRequest 생성 시도 시 req.id 사용
+                val acceptcall = AcceptCallRequest(
+                    id = req.id,  // 잘못 쓰여 있던 CallRequest.id → req.id 로 변경
+                    assigned_at = getCurrentIsoTime()
+                )
+                val gson = Gson()
+                val json = gson.toJson(acceptcall)
+                val requestBody = json.toRequestBody("application/json; charset=utf-8".toMediaType())
+
+                ApiClient.apiService
+                    .acceptcall("Bearer $accessToken", req.id, requestBody)
+                    .enqueue(object : Callback<AcceptCallRequest> {
+                        override fun onResponse(
+                            call: Call<AcceptCallRequest>,
+                            response: Response<AcceptCallRequest>
+                        ) {
+                            if (response.isSuccessful) {
+                                Log.d("API", "수락 성공: ${response.body()}")
+                                Toast.makeText(this@CallWaitingActivity, "콜 수락 성공", Toast.LENGTH_SHORT).show()
+                            } else {
+                                Log.e("API", "수락 실패: ${response.code()} - ${response.errorBody()?.string()}")
+                            }
+                        }
+                        override fun onFailure(call: Call<AcceptCallRequest>, t: Throwable) {
+                            Log.e("API", "수락 실패: ${t.message}")
+                        }
+                    })
+
+                // CallInfoActivity로 넘어갈 때도 req 객체를 전달
                 val intent = Intent(this@CallWaitingActivity, CallInfoActivity::class.java).apply {
+                    putExtra("assignment_id", req.id)
                     putExtra("access_token", accessToken)
-                    putExtra("request_id", req.id)
+                    putExtra("request_id", req.request_id)
                 }
                 startActivity(intent)
                 hideIncomingCall()
-
             }
+
+
             }
 
         // 4-4) 콜 재개 버튼: REST API로 can_receive_call=true, 화면 상태만 변경
@@ -324,10 +349,11 @@ class CallWaitingActivity : AppCompatActivity() {
         // 4-6) 테스트 콜 (로컬용)
         btnTestCall.setOnClickListener {
             val fake = CallRequest(
-                id      = "T060177KK",
+                id      = 1,
                 fare    = 23000,
-                pickup  = "김형수",
-                dropoff = "이홍규"
+                pickup  = "서울특별시 강남구 테헤란로 123",
+                dropoff = "서울특별시 강남구 학동로 456",
+                request_id = "T0602ARD6"
             )
             currentRequest = fake
             showIncomingCall(fake)
@@ -378,20 +404,22 @@ class CallWaitingActivity : AppCompatActivity() {
                             Log.d("WebSocket", "assignment 오브젝트: $assignment")
 
                             // ID: Int → String
-                            val id = assignment.getInt("id").toString()
+                            val id = assignment.getInt("id")
 
                             // pickup_location / delivery_location
                             val pickupLocation   = assignment.optString("pickup_location", "알 수 없음")
                             val deliveryLocation = assignment.optString("delivery_location", "알 수 없음")
+                            val requestid = assignment.optString("request_id", "알 수 없음")
 
                             // fare 무작위 생성 (1000원~30000원)
                             val fare = (1000..30000).random()
 
                             val callRequest = CallRequest(
                                 id      = id,
+                                request_id = requestid,
                                 fare    = fare,
                                 pickup  = pickupLocation,
-                                dropoff = deliveryLocation
+                                dropoff = deliveryLocation,
                             )
                             currentRequest = callRequest
                             showIncomingCall(callRequest)
@@ -436,19 +464,100 @@ class CallWaitingActivity : AppCompatActivity() {
                 super.onOpen(webSocket, response)
                 Log.d("LocationSocket", "🟢 위치 수신 WebSocket 연결 성공")
 
-                // (원한다면 서버에서 오는 위치 데이터를 처리)
-                runOnUiThread {
-                    // 예: 위치 데이터를 표시에 활용할 수 있음
+                // 주기적 위치 전송 루프 시작
+                lifecycleScope.launch(Dispatchers.IO) {
+                    while (isActive) {
+                        fusedLocationClient.lastLocation
+                            .addOnSuccessListener { loc ->
+                                loc?.let {
+                                    val lat = it.latitude
+                                    val lng = it.longitude
+
+                                    val locationJson = JSONObject().apply {
+                                        put("latitude", lat)
+                                        put("longitude", lng)
+                                    }
+
+                                    val json = JSONObject().apply {
+                                        put("location", locationJson)
+                                    }
+
+                                    locationSocket?.send(json.toString())
+                                    Log.d("LocationWS", "📤 위치 전송: $json")
+                                }
+                            }
+
+                        delay(3000L) // 3초마다 전송
+                    }
                 }
             }
-
             override fun onMessage(webSocket: WebSocket, text: String) {
                 super.onMessage(webSocket, text)
                 runOnUiThread {
-                    // 서버가 보내는 위치 JSON을 받고 싶다면 여기서 파싱
-                    Log.d("LocationSocket", "📨 위치 데이터 수신: $text")
+                    // 1) 원본 문자열 전체 찍어보기
+                    Log.d("WebSocket", "📨 받은 Raw JSON: $text")
+
+                    try {
+                        val data = JSONObject(text)
+
+                        // “type” 항목도 찍어보자
+                        val type = data.optString("type", "<no-type>")
+                        Log.d("WebSocket", "▶ 데이터 타입(type) = $type")
+
+                        if (type == "assignment") {
+                            val assignment = data.getJSONObject("assignment")
+
+                            // 2) assignment JSONObject 전체를 찍어보기
+                            Log.d("WebSocket", "▶ assignment JSON = $assignment")
+
+                            // id, pickup_location, delivery_location, request_id 등
+                            val id = assignment.optInt("id", -1)
+                            val pickupLocation = assignment.optString("pickup_location", "<no-pickup>")
+                            val deliveryLocation = assignment.optString("delivery_location", "<no-delivery>")
+                            // “request_id” 키가 없으면 optString으로 빈 문자열 반환
+                            val requestId = assignment.optString("request_id", "<no-request_id>")
+
+                            // 임의로 fare 생성 중이라면, JSON에서 fare가 실제 내려오는지도 찍어본다.
+                            val fareFromJson = if (assignment.has("fare")) assignment.optInt("fare", 0) else null
+
+                            Log.d("WebSocket", "▶ 파싱된 값 → id=$id, pickup='$pickupLocation', delivery='$deliveryLocation', request_id='$requestId', fareFromJson=$fareFromJson")
+
+                            // 만약 JSON에 “request_id” 키가 없고 별도 키를 사용한다면
+                            // 예를 들어 “delivery_id”라든가 “order_id” 같은 걸 쓰고 있을 가능성도 있다.
+                            // 이럴 때는 assignment.keys()를 찍어보면 모든 키 목록을 확인할 수 있다.
+                            val keysIter = assignment.keys()
+                            val keysList = mutableListOf<String>()
+                            while (keysIter.hasNext()) {
+                                keysList.add(keysIter.next())
+                            }
+                            Log.d("WebSocket", "▶ assignment 객체의 키 목록 = $keysList")
+
+                            // 3) CallRequest 생성 시에도, JSON 키 이름이 달라서 제대로 안 들어갈 수 있다.
+                            //    지금은 예시로 id, fare, pickup, dropoff, request_id 다섯 개를 기대하고 있다.
+                            //    JSON의 키 이름이 다르면 아래처럼 수정해야 한다.
+
+                            // 예시: JSON에 "pickup_location" 이 있다면 callRequest.pickup = pickupLocation
+                            //      JSON에 "delivery_location" 이 있다면 callRequest.dropoff = deliveryLocation
+                            //      JSON에 "request_id" 대신 "delivery_id" 같은 키를 쓰고 있으면
+                            //      assignment.optString("delivery_id", ...) 로 받아야 한다.
+
+                            // 🚩 아래는 지금까지 가정하던 키 이름 그대로 사용한 예시
+                            val callRequest = CallRequest(
+                                id        = id,
+                                fare      = fareFromJson ?: (1000..30000).random(), // JSON에 없다면 코드에서 랜덤으로 넣어본다
+                                pickup    = pickupLocation,
+                                dropoff   = deliveryLocation,
+                                request_id = requestId
+                            )
+                            currentRequest = callRequest
+                            showIncomingCall(callRequest)
+                        }
+                    } catch (e: Exception) {
+                        Log.e("WebSocket", "onMessage 파싱 에러", e)
+                    }
                 }
             }
+
 
             override fun onFailure(webSocket: WebSocket, t: Throwable, response: okhttp3.Response?) {
                 super.onFailure(webSocket, t, response)

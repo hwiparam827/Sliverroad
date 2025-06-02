@@ -1,19 +1,23 @@
 package com.example.sliverroad
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.sliverroad.api.ApiClient
+import com.example.sliverroad.api.ApiClient.apiService
 import com.example.sliverroad.data.AppDatabase
 import com.example.sliverroad.data.DeliveryHistory
+import com.example.sliverroad.data.DeliveryHistoryItem
 import kotlinx.coroutines.launch
-
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 class HistoryActivity : AppCompatActivity() {
 
-    // DB, 뷰, 어댑터 선언
-    private lateinit var db: AppDatabase
     private lateinit var rvHistory: RecyclerView
     private lateinit var tvDate: TextView
     private lateinit var adapter: HistoryAdapter
@@ -22,27 +26,36 @@ class HistoryActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_history)
 
-        // 1) DB 인스턴스 초기화
-        db = AppDatabase.getInstance(this)
-
-        // 2) findViewById 로 뷰 바인딩
         rvHistory = findViewById(R.id.rvHistory)
         tvDate    = findViewById(R.id.tvDate)
 
-        // 3) RecyclerView 세팅
         adapter = HistoryAdapter(emptyList())
         rvHistory.layoutManager = LinearLayoutManager(this)
         rvHistory.adapter = adapter
 
-        // 4) 날짜 가져와서 표시
-        val today = intent.getStringExtra("date") ?: "2024.05.11"
+        val today = intent.getStringExtra("date") ?: "오늘 날짜"
         tvDate.text = today
 
-        // 5) 코루틴에서 DB 조회 → 어댑터에 전달
-        lifecycleScope.launch {
-            val list: List<DeliveryHistory> =
-                db.deliveryHistoryDao().findByDate(today)
-            adapter.submitList(list)
-        }
-    }
-}
+        val token = intent.getStringExtra("access_token") ?: ""
+
+        apiService.getDeliveryHistory("Bearer $token")
+            .enqueue(object : Callback<List<DeliveryHistoryItem>> {
+                override fun onResponse(
+                    call: Call<List<DeliveryHistoryItem>>,
+                    response: Response<List<DeliveryHistoryItem>>
+                ) {
+                    if (response.isSuccessful) {
+                        val historyList = response.body() ?: emptyList()
+                        adapter.submitList(historyList)
+                    } else {
+                        Log.e("API", "❌ 히스토리 조회 실패: ${response.code()} / ${response.errorBody()?.string()}")
+                    }
+                }
+
+                override fun onFailure(
+                    call: Call<List<DeliveryHistoryItem>>,
+                    t: Throwable
+                ) {
+                    Log.e("API", "❌ 히스토리 네트워크 오류", t)
+                }
+            })}}
