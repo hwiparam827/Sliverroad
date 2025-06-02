@@ -1,6 +1,7 @@
 package com.example.sliverroad.api
 import com.example.sliverroad.data.LoginStatusRequest
 import retrofit2.Call
+import retrofit2.Response
 import retrofit2.http.*
 import com.example.sliverroad.data.LoginRequest
 import com.example.sliverroad.data.LoginResponse
@@ -9,6 +10,9 @@ import com.example.sliverroad.data.CallStatusResponse
 import com.example.sliverroad.data.LocationRequest
 import com.example.sliverroad.data.LocationResponse
 import com.example.sliverroad.data.CallRequestDetailResponse
+import com.example.sliverroad.data.AcceptCallRequest
+import com.example.sliverroad.data.DeclineCallRequest
+import com.example.sliverroad.data.RouteResponse
 
 import okhttp3.RequestBody
 interface ApiService {
@@ -41,13 +45,37 @@ interface ApiService {
     ): Call<LocationResponse>
 
 
-    /** 접수 상세 조회 */
-    @GET("/api/delivery/delivery-detail/{id}/")
-    fun getRequestDetail(
+    @GET("/api/delivery/delivery-detail/{pk}/")
+    suspend fun getDeliveryDetail(
         @Header("Authorization") bearerToken: String,
-        @Path("id") requestId: String
-    ): Call<CallRequestDetailResponse>
+        @Path("pk") pk: String
+    ): Response<CallRequestDetailResponse>
 
+
+    // 배달 수락
+    @PATCH("/api/delivery/assignment/{assignment_id}/accept/")
+    fun acceptCall(
+        @Header("Authorization") token: String,
+        @Path("assignment_id") assignmentId: Int,
+        @Body body: RequestBody
+    ): Call<AcceptCallRequest>
+
+    // 배달 거절
+    @PATCH("/api/delivery/assignment/{assignment_id}/decline/")
+    fun declineCall(
+        @Header("Authorization") token: String,
+        @Path("assignment_id") assignmentId: Int,
+        @Body body: RequestBody
+    ): Call<DeclineCallRequest>
+
+
+    @GET("/api/delivery_route/find-route/{request_id}/")
+    fun getRouteInfo(
+        @Header("Authorization") token: String,
+        @Path("request_id") requestId: String
+    ): Call<RouteResponse>
 
 }
+
+
 

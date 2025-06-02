@@ -10,6 +10,7 @@ import android.widget.Button
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import androidx.core.app.ActivityCompat
@@ -20,11 +21,14 @@ import com.example.sliverroad.data.LocationRequest
 import com.example.sliverroad.data.LocationResponse
 import com.example.sliverroad.data.LoginStatusRequest
 import com.example.sliverroad.data.CallStatusResponse
+import com.example.sliverroad.data.AcceptCallRequest
+import com.example.sliverroad.data.DeclineCallRequest
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -35,6 +39,15 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import okhttp3.RequestBody.Companion.toRequestBody
+import com.google.gson.Gson
+import okhttp3.RequestBody
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
+
 
 class CallWaitingActivity : AppCompatActivity() {
 
@@ -111,13 +124,13 @@ class CallWaitingActivity : AppCompatActivity() {
             // ➂ 콜 할당 WebSocket 시작
             connectAssignmentSocket()
 
-            // ➃ 10초마다 REST API로 위치 전송
+            /* ➃ 10초마다 REST API로 위치 전송
             lifecycleScope.launch(Dispatchers.IO) {
                 while (isActive) {
                     sendCurrentLocationOnce()
-                    delay(10_000)
+                    delay(60_000)
                 }
-            }
+            }*/
         } else {
             requestLocationPermission()
         }
@@ -130,11 +143,50 @@ class CallWaitingActivity : AppCompatActivity() {
 
         // 4-1) 배달 거절(인커밍 콜 거절) 버튼
         btnRejectCall.setOnClickListener {
+            btnResumeCall.visibility = View.VISIBLE
+            btnStopCall.visibility = View.GONE
+
+            // 메인 버튼 표시, 수락/거절 숨김
+            llMainButtons.visibility = View.VISIBLE
+            btnAcceptCall.visibility = View.GONE
+            btnRejectCall.visibility = View.GONE
             hideIncomingCall()
             // assignmentSocket은 계속 유지 → 다음 요청 수신 가능
+            // --- 여기서 API 호출 ---
+
+            // JSON 변환
+            val declineRequest = DeclineCallRequest(
+                id = 1,
+                assigned_at = getCurrentIsoTime()
+            )
+
+            val gson = Gson()
+            val json = gson.toJson(declineRequest)
+            // 3. JSON 문자열을 RequestBody로 변환
+            val requestBody = json.toRequestBody("application/json; charset=utf-8".toMediaType())
+
+            // API 호출
+            ApiClient.apiService.declineCall("Bearer $accessToken", 1, requestBody)
+                .enqueue(object : Callback<DeclineCallRequest> {
+                    override fun onResponse(
+                        call: Call<DeclineCallRequest>,
+                        response: Response<DeclineCallRequest>
+                    ) {
+                        if (response.isSuccessful) {
+                            Log.d("API", "거절 성공: ${response.body()}")
+                            Toast.makeText(this@CallWaitingActivity, "콜 거절 성공", Toast.LENGTH_SHORT).show()
+                        } else {
+                            Log.e("API", "거절 실패: ${response.code()} - ${response.errorBody()?.string()}")
+                        }
+                    }
+
+                    override fun onFailure(call: Call<DeclineCallRequest>, t: Throwable) {
+                        Log.e("API", "거절 실패: ${t.message}")
+                    }
+                })
+
         }
 
-        // 4-2) 배달 수락 버튼
         btnAcceptCall.setOnClickListener {
             currentRequest?.let { req ->
                 isDelivering = true
@@ -151,9 +203,49 @@ class CallWaitingActivity : AppCompatActivity() {
                 }
                 startActivity(intent)
                 hideIncomingCall()
-            }
-        }
 
+            }
+            }
+
+        // 4-4) 콜 재개 버튼: REST API로 can_receive_call=true, 화면 상태만 변경
+        btnResumeCall.setOnClickListener {
+            // 화면 상태 변경
+            tvStatus.text = "콜 대기중\n···"
+            btnResumeCall.visibility = View.GONE
+            btnStopCall.visibility = View.VISIBLE
+
+            // 메인 버튼 표시, 수락/거절 숨김
+            llMainButtons.visibility = View.VISIBLE
+            btnAcceptCall.visibility = View.GONE
+            btnRejectCall.visibility = View.GONE
+
+            // REST API: can_receive_call = true
+            val json = JSONObject().apply { put("can_receive_call", true) }
+            val body = json.toString().toRequestBody("application/json".toMediaTypeOrNull())
+            ApiClient.apiService.toggleCallReceiveStatus("Bearer $accessToken", body)
+                .enqueue(object : Callback<CallStatusResponse> {
+                    override fun onResponse(
+                        call: Call<CallStatusResponse>,
+                        response: Response<CallStatusResponse>
+                    ) {
+                        if (response.isSuccessful) {
+                            Log.d("API", "콜 수신 재개 성공")
+                        } else {
+                            Log.e(
+                                "API",
+                                "콜 수신 재개 실패: ${response.code()}, ${response.errorBody()?.string()}"
+                            )
+                        }
+                    }
+                    override fun onFailure(call: Call<CallStatusResponse>, t: Throwable) {
+                        Log.e("API", "콜 수신 재개 오류", t)
+                    }
+                })
+
+            // 콜 할당 WebSocket 재연결 (isDelivering == false일 때만)
+            connectAssignmentSocket()
+            Log.d("WebSocket", "▶ 콜 재개 → assignmentSocket 재연결")
+        }
         // 4-3) 콜 멈춤 버튼: REST API로 can_receive_call=false, 화면 상태만 변경
         btnStopCall.setOnClickListener {
             // 화면 상태 변경
@@ -195,46 +287,6 @@ class CallWaitingActivity : AppCompatActivity() {
             Log.d("WebSocket", "🟠 콜 멈춤 → assignmentSocket 닫음")
         }
 
-        // 4-4) 콜 재개 버튼: REST API로 can_receive_call=true, 화면 상태만 변경
-        btnResumeCall.setOnClickListener {
-            // 화면 상태 변경
-            tvStatus.text = "콜 대기중\n···"
-            btnResumeCall.visibility = View.GONE
-            btnStopCall.visibility = View.VISIBLE
-
-            // 메인 버튼 표시, 수락/거절 숨김
-            llMainButtons.visibility = View.VISIBLE
-            btnAcceptCall.visibility = View.GONE
-            btnRejectCall.visibility = View.GONE
-
-            // REST API: can_receive_call = true
-            val json = JSONObject().apply { put("can_receive_call", true) }
-            val body = json.toString().toRequestBody("application/json".toMediaTypeOrNull())
-            ApiClient.apiService.toggleCallReceiveStatus("Bearer $accessToken", body)
-                .enqueue(object : Callback<CallStatusResponse> {
-                    override fun onResponse(
-                        call: Call<CallStatusResponse>,
-                        response: Response<CallStatusResponse>
-                    ) {
-                        if (response.isSuccessful) {
-                            Log.d("API", "콜 수신 재개 성공")
-                        } else {
-                            Log.e(
-                                "API",
-                                "콜 수신 재개 실패: ${response.code()}, ${response.errorBody()?.string()}"
-                            )
-                        }
-                    }
-                    override fun onFailure(call: Call<CallStatusResponse>, t: Throwable) {
-                        Log.e("API", "콜 수신 재개 오류", t)
-                    }
-                })
-
-            // 콜 할당 WebSocket 재연결 (isDelivering == false일 때만)
-            connectAssignmentSocket()
-            Log.d("WebSocket", "▶ 콜 재개 → assignmentSocket 재연결")
-        }
-
         // 4-5) 퇴근 버튼: 두 WebSocket 닫고, 서버에 퇴근 상태 전송 → 액티비티 종료
         btnEndWork.setOnClickListener {
             // 콜 할당 WebSocket 닫기
@@ -266,13 +318,16 @@ class CallWaitingActivity : AppCompatActivity() {
                 })
         }
 
+
+
+
         // 4-6) 테스트 콜 (로컬용)
         btnTestCall.setOnClickListener {
             val fake = CallRequest(
-                id      = "ada",
+                id      = "T060177KK",
                 fare    = 23000,
-                pickup  = "강남구 역삼동",
-                dropoff = "동대문구 회기동"
+                pickup  = "김형수",
+                dropoff = "이홍규"
             )
             currentRequest = fake
             showIncomingCall(fake)
@@ -486,7 +541,7 @@ class CallWaitingActivity : AppCompatActivity() {
         cvIncomingCall.visibility    = View.GONE
         llIncomingButtons.visibility = View.GONE
 
-        tvStatus.visibility      = View.GONE
+        tvStatus.visibility      = View.VISIBLE
         llMainButtons.visibility = View.VISIBLE
 
         btnAcceptCall.visibility = View.GONE
@@ -545,6 +600,11 @@ class CallWaitingActivity : AppCompatActivity() {
         assignmentSocket = null
         locationSocket?.close(1000, "activity_destroyed")
         locationSocket = null
+    }
+    fun getCurrentIsoTime(): String {
+        val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
+        sdf.timeZone = TimeZone.getTimeZone("UTC")
+        return sdf.format(Date())
     }
 }
 

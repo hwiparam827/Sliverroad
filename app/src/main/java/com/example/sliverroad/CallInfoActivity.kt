@@ -12,6 +12,18 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import android.net.Uri
+import android.widget.Toast
+import androidx.lifecycle.lifecycleScope
+import com.example.sliverroad.data.AcceptCallRequest
+import com.google.gson.Gson
+import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
+
 
 class CallInfoActivity : AppCompatActivity() {
 
@@ -40,7 +52,11 @@ class CallInfoActivity : AppCompatActivity() {
         setContentView(R.layout.activity_call_info)
 
         // 1) 인텐트로부터 토큰과 requestId 가져오기
+        // ✅ 인텐트에서 두 값 모두 가져오기
         accessToken = intent.getStringExtra("access_token") ?: ""
+        requestId = intent.getStringExtra("request_id") ?: ""
+
+
         if (accessToken.isBlank() || requestId.isBlank()) {
             Log.e("CallInfo", "토큰 또는 requestId가 없습니다.")
             finish()
@@ -69,27 +85,23 @@ class CallInfoActivity : AppCompatActivity() {
 
     private fun fetchRequestDetail() {
         val bearer = "Bearer $accessToken"
-        ApiClient.apiService
-            .getRequestDetail(bearer, requestId)
-            .enqueue(object : Callback<CallRequestDetailResponse> {
-                override fun onResponse(
-                    call: Call<CallRequestDetailResponse>,
-                    response: Response<CallRequestDetailResponse>
-                ) {
-                    if (response.isSuccessful && response.body() != null) {
-                        bindDetail(response.body()!!)
-                    } else {
-                        Log.e("Detail", "상세 조회 실패: HTTP ${response.code()}")
-                        finish()
-                    }
-                }
+        lifecycleScope.launch {
+            try {
+                val response = ApiClient.apiService.getDeliveryDetail(bearer,requestId ) // suspend 함수 호출
+                if (response.isSuccessful && response.body() != null) {
+                    bindDetail(response.body()!!)
+                } else {
+                    Log.e("Detail", "상세 조회 실패: HTTP ${response.code()}")
 
-                override fun onFailure(call: Call<CallRequestDetailResponse>, t: Throwable) {
-                    Log.e("Detail", "상세 조회 오류", t)
-                    finish()
                 }
-            })
+            } catch (e: Exception) {
+                Log.e("Detail", "상세 조회 오류", e)
+
+            }
+        }
+
     }
+
 
     private fun bindDetail(detail: CallRequestDetailResponse) {
         // 서버에서 받은 데이터를 화면에 뿌리기
@@ -113,14 +125,53 @@ class CallInfoActivity : AppCompatActivity() {
 
         // 네비게이션 버튼 클릭 시 지도 앱 또는 자체 맵 화면으로 이동
         btnStartNavigation.setOnClickListener {
-            // 예시: Google Maps 내비게이션 호출
-            // "geo:lat,lng?q=<pickupLocation>"
-            val geoUri = Uri.parse("geo:0,0?q=${Uri.encode(detail.pickup_location)}")
-            val mapIntent = Intent(Intent.ACTION_VIEW, geoUri)
-            mapIntent.setPackage("com.google.android.apps.maps")
-            if (mapIntent.resolveActivity(packageManager) != null) {
-                startActivity(mapIntent)
+            detail?.let { detailInfo ->
+                // 콜 수락 API 호출
+                val acceptRequest = AcceptCallRequest(
+                    id = 1,  // 여기 id는 String이니 API가 String 받는지 확인 필요
+                    assigned_at = getCurrentIsoTime()
+                )
+
+                val gson = Gson()
+                val json = gson.toJson(acceptRequest)
+                val requestBody = json.toRequestBody("application/json; charset=utf-8".toMediaType())
+
+                ApiClient.apiService.acceptCall("Bearer $accessToken", 1, requestBody)
+                    .enqueue(object : Callback<AcceptCallRequest> {
+                        override fun onResponse(call: Call<AcceptCallRequest>, response: Response<AcceptCallRequest>) {
+                            if (response.isSuccessful) {
+                                Log.d("API", "콜 수락 성공: ${response.body()}")
+                                Toast.makeText(this@CallInfoActivity, "콜 수락 성공", Toast.LENGTH_SHORT).show()
+
+                                // 콜 수락 성공 후 네비게이션 화면으로 이동
+                                val intent = Intent(this@CallInfoActivity, OsmMapActivity::class.java)
+                                intent.putExtra("의뢰인 연락처", detailInfo.requester_phone)
+                                intent.putExtra("수취인 연락처", detailInfo.recipient_phone)
+                                intent.putExtra("access_token", accessToken)
+                                intent.putExtra("access_token", requestId)
+                                startActivity(intent)
+
+                            } else {
+                                Log.e("API", "콜 수락 실패: ${response.code()} - ${response.errorBody()?.string()}")
+                                Toast.makeText(this@CallInfoActivity, "콜 수락 실패", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+
+                        override fun onFailure(call: Call<AcceptCallRequest>, t: Throwable) {
+                            Log.e("API", "콜 수락 실패: ${t.message}")
+                            Toast.makeText(this@CallInfoActivity, "콜 수락 실패", Toast.LENGTH_SHORT).show()
+                        }
+                    })
+            } ?: run {
+                Toast.makeText(this@CallInfoActivity, "상세 정보가 없습니다.", Toast.LENGTH_SHORT).show()
             }
         }
+
+
+    }
+    fun getCurrentIsoTime(): String {
+        val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
+        sdf.timeZone = TimeZone.getTimeZone("UTC")
+        return sdf.format(Date())
     }
 }
