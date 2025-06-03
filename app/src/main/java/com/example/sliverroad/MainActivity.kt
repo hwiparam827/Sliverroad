@@ -12,15 +12,40 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.http.PUT
+import androidx.fragment.app.viewModels  // Fragment에서
+import com.bumptech.glide.Glide
+import com.example.sliverroad.databinding.ActivityMainBinding
+import androidx.activity.viewModels   // Activity에서
+import androidx.fragment.app.viewModels  // Fragment에서
+import com.example.sliverroad.viewmodel.DriverViewModel
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var accessToken: String
+    private lateinit var binding: ActivityMainBinding
+    private val viewModel: DriverViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
         accessToken = intent.getStringExtra("access_token") ?: ""
+
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        // Observe LiveData
+
+        viewModel.driver.observe(this) { driver ->
+            binding.tvDriverName.text = "${driver.name} 기사님"
+
+            val imageUrl = "https://largeredjade.site:${driver.profileImage}"
+
+            Glide.with(this)
+                .load(imageUrl)
+                .into(binding.ivDriverPhoto)
+
+        }
+        // Example: load driver info when activity starts
+        viewModel.loadDriverInfo("$accessToken")
+
 
         // 3) 배송 내역 이미지 버튼
         val btnHistory = findViewById<ImageButton>(R.id.btnHistory)

@@ -21,6 +21,7 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <ImageView
+            android:id="@+id/ivDriverPhoto"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:layout_marginEnd="12dp"
@@ -31,7 +32,7 @@
             android:id="@+id/tvDriverName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="이홍규 기사님"
+            android:text=""
             android:textColor="#222222"
             android:textSize="30sp"
             android:gravity="center"
@@ -101,15 +102,7 @@
             android:scaleType="fitCenter"
             android:src="@drawable/stopworking" />
 
-        <!-- 테스트용 콜 생성 버튼 -->
-        <Button
-            android:id="@+id/btnTestCall"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginTop="8dp"
-            android:text="테스트 콜"
-            android:background="@drawable/btn_outline"
-            android:textColor="#000000"/>
+
     </LinearLayout>
 
     <androidx.cardview.widget.CardView

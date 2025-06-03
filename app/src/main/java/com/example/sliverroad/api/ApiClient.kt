@@ -20,6 +20,7 @@ object ApiClient {
         .baseUrl(BASE_URL)
         .client(okHttpClient)
         .addConverterFactory(GsonConverterFactory.create())
+
         .build()
 
     // 3) 만들어진 Retrofit 인스턴스에서 ApiService를 가져오기

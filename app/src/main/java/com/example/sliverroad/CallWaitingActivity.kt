@@ -7,7 +7,7 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.widget.Button
+import androidx.lifecycle.viewModelScope
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -15,7 +15,11 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import androidx.core.app.ActivityCompat
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.lifecycleScope
+import com.bumptech.glide.Glide
 import com.example.sliverroad.api.ApiClient
 import com.example.sliverroad.data.LocationRequest
 import com.example.sliverroad.data.LocationResponse
@@ -23,6 +27,8 @@ import com.example.sliverroad.data.LoginStatusRequest
 import com.example.sliverroad.data.CallStatusResponse
 import com.example.sliverroad.data.AcceptCallRequest
 import com.example.sliverroad.data.DeclineCallRequest
+import com.example.sliverroad.data.Driver
+import com.example.sliverroad.databinding.ActivityCallWaitingBinding
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -48,7 +54,9 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
-
+import com.example.sliverroad.viewmodel.DriverViewModel
+import androidx.activity.viewModels   // Activity에서
+import androidx.fragment.app.viewModels  // Fragment에서
 
 class CallWaitingActivity : AppCompatActivity() {
 
@@ -69,7 +77,10 @@ class CallWaitingActivity : AppCompatActivity() {
     private lateinit var btnEndWork: ImageButton
     private lateinit var btnAcceptCall: ImageButton
     private lateinit var btnRejectCall: ImageButton
-    private lateinit var btnTestCall: Button
+
+    private lateinit var binding: ActivityCallWaitingBinding
+
+    private val viewModel: DriverViewModel by viewModels()
 
     private lateinit var cvIncomingCall: CardView
     private lateinit var tvIncomingFare: TextView
@@ -93,7 +104,25 @@ class CallWaitingActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_call_waiting)
+
+        accessToken = intent.getStringExtra("access_token") ?: ""
+
+        binding = ActivityCallWaitingBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        // Observe LiveData
+        viewModel.driver.observe(this) { driver ->
+            binding.tvDriverName.text = "${driver.name} 기사님"
+
+            val imageUrl = "https://largeredjade.site:${driver.profileImage}"
+
+            Glide.with(this)
+                .load(imageUrl)
+                .into(binding.ivDriverPhoto)
+
+        }
+        // Example: load driver info when activity starts
+        viewModel.loadDriverInfo( "$accessToken")
 
         // 1) 뷰 바인딩
         tvStatus         = findViewById(R.id.tvStatus)
@@ -103,7 +132,6 @@ class CallWaitingActivity : AppCompatActivity() {
         btnEndWork       = findViewById(R.id.btnEndWork)
         btnAcceptCall    = findViewById(R.id.btnAcceptCall)
         btnRejectCall    = findViewById(R.id.btnRejectCall)
-        btnTestCall      = findViewById(R.id.btnTestCall)
 
         cvIncomingCall   = findViewById(R.id.cvIncomingCall)
         tvIncomingFare   = findViewById(R.id.tvIncomingFare)
@@ -345,19 +373,6 @@ class CallWaitingActivity : AppCompatActivity() {
 
 
 
-
-        // 4-6) 테스트 콜 (로컬용)
-        btnTestCall.setOnClickListener {
-            val fake = CallRequest(
-                id      = 1,
-                fare    = 23000,
-                pickup  = "서울특별시 강남구 테헤란로 123",
-                dropoff = "서울특별시 강남구 학동로 456",
-                request_id = "T0602ARD6"
-            )
-            currentRequest = fake
-            showIncomingCall(fake)
-        }
     }
 
     override fun onResume() {
@@ -715,5 +730,6 @@ class CallWaitingActivity : AppCompatActivity() {
         sdf.timeZone = TimeZone.getTimeZone("UTC")
         return sdf.format(Date())
     }
+
 }
 

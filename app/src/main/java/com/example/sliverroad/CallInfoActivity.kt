@@ -43,6 +43,8 @@ class CallInfoActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        accessToken = intent.getStringExtra("access_token") ?: ""
+
         setContentView(R.layout.activity_call_info)
 
         // ───────────────────────────────────────────────────────────────────
@@ -144,7 +146,7 @@ class CallInfoActivity : AppCompatActivity() {
                         Log.d("Route", "destination_type = ${data.destination_type}")
 
                         // 2) 네 가지 경로 중에서 “shortest” 경로 정보 꺼내기
-                        val pickupInfo = data.routes["pickup"]
+                        val pickupInfo = data.routes["shortest"]
                            if (pickupInfo != null) {
 
                                    // 보행 좌표, 벤치 좌표 등은 pickupInfo를 통해 읽어야 합니다.

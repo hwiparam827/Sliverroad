@@ -14,6 +14,7 @@ import com.example.sliverroad.data.CallRequestDetailResponse
 import com.example.sliverroad.data.AcceptCallRequest
 import com.example.sliverroad.data.DeclineCallRequest
 import com.example.sliverroad.data.DeliveryHistoryItem
+import com.example.sliverroad.data.Driver
 import com.example.sliverroad.model.FindRouteResponse
 import com.google.gson.annotations.SerializedName
 import okhttp3.MultipartBody
@@ -115,6 +116,11 @@ interface ApiService {
     fun getDeliveryHistory(
         @Header("Authorization") token: String
     ): Call<List<DeliveryHistoryItem>>
+
+    @GET("/api/delivery/user-info/")
+    suspend fun getDriverInfo(
+        @Header("Authorization") token: String
+    ): Response<Driver>
 }
 
 
