@@ -215,14 +215,7 @@ class OsmMapActivity : AppCompatActivity() {
         }
 
 }
-    private fun getColorByWalkType(type: String): Int {
-        return when (type) {
-            "shortest" -> 0xFF1E90FF.toInt() // 파란색
-            "safe_path" -> 0xFFFF0000.toInt() // 빨간색
-            "bench" -> 0xFF00FF00.toInt() // 초록색
-            else -> 0xFF888888.toInt() // 회색
-        }
-    }
+
         private fun checkLocationPermissionAndStartUpdates() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
             != PackageManager.PERMISSION_GRANTED
