@@ -17,14 +17,12 @@
         android:padding="12dp"
         android:layout_marginBottom="24dp">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="기사\n사진"
-            android:background="#D9D9D9"
-            android:gravity="center"
-            android:padding="8dp"
-            android:textSize="10sp" />
+        <ImageView
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="12dp"
+            android:contentDescription="기사 사진"
+            android:src="@drawable/silverroad_logo" />
 
         <TextView
             android:layout_width="0dp"
@@ -80,6 +78,7 @@
             android:layout_marginBottom="8dp">
 
             <TextView
+
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="배송 일시"
@@ -89,11 +88,12 @@
                  />
 
             <TextView
+                android:id="@+id/deliverytime"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="24dp"
                 android:textColor="#222222"
-                android:text="2025.05.11 12:40"
+                android:text=""
                 android:textSize="30sp"
                 android:textStyle="bold" />
         </LinearLayout>
@@ -112,11 +112,12 @@
                 android:textSize="30sp" />
 
             <TextView
+                android:id="@+id/deliveryweight"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="24dp"
                 android:textColor="#222222"
-                android:text="쌀 20KG"
+                android:text=""
                 android:textSize="30sp"
                 android:textStyle="bold" />
         </LinearLayout>

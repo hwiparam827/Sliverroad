@@ -1,11 +1,13 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
     <!-- 헤더 카드 -->
     <LinearLayout
+
         android:id="@+id/headerCard"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -44,48 +46,74 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <TextView
+        android:id="@+id/tvRouteComparison"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#AAFFFFFF"
+        android:padding="8dp"
+        android:text="경로 비교 정보"
+        android:textSize="14sp"
+        android:textColor="#000000"
+        android:visibility="gone"
+        android:gravity="center"
+        app:layout_constraintTop_toBottomOf="@id/headerCard"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
     <!-- 경로 선택 바 -->
     <LinearLayout
         android:id="@+id/pathSelectionBar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:background="#FFFFFF"
+        android:gravity="center"
         android:orientation="horizontal"
         android:padding="8dp"
-        android:gravity="center"
-        android:background="#FFFFFF"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
+        tools:visibility="visible">
+        <!-- 우측 상단 벤치 버튼 -->
+        <ImageButton
+            android:id="@+id/btnFindBench"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_gravity="top|end"
+            android:background="@null"
+            android:contentDescription="벤치 정보"
+            android:src="@drawable/ic_bench"
+            tools:visibility="visible" />
         <ImageButton
             android:id="@+id/btnShortest"
             android:layout_width="0dp"
             android:layout_height="100dp"
             android:layout_weight="1"
-            android:src="@drawable/shortest_bt"
             android:background="@null"
             android:contentDescription="빠른 길"
-            android:scaleType="fitCenter" />
+            android:scaleType="fitCenter"
+            android:src="@drawable/shortest_bt" />
 
         <ImageButton
             android:id="@+id/btnSafe"
             android:layout_width="0dp"
             android:layout_height="100dp"
             android:layout_weight="1"
-            android:src="@drawable/safeppath_bt"
             android:background="@null"
             android:contentDescription="안전 길"
-            android:scaleType="fitCenter" />
+            android:scaleType="fitCenter"
+            android:src="@drawable/safeppath_bt" />
 
         <ImageButton
             android:id="@+id/btnBench"
             android:layout_width="0dp"
             android:layout_height="100dp"
             android:layout_weight="1"
-            android:src="@drawable/bench_bt"
             android:background="@null"
             android:contentDescription="편한 길"
-            android:scaleType="fitCenter" />
+            android:scaleType="fitCenter"
+            android:src="@drawable/bench_bt" />
+
     </LinearLayout>
 
     <!-- 경로 안내 시작 버튼 -->
@@ -97,31 +125,35 @@
         android:background="@null"
         android:contentDescription="경로 안내"
         android:src="@drawable/route_navigate"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:visibility="gone" />
+
 
     <!-- 안내 화면 오버레이 -->
     <LinearLayout
         android:id="@+id/navigationOverlay"
-        android:background="@android:color/transparent"
-        android:visibility="gone"
-        android:orientation="vertical"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:background="@android:color/transparent"
+        android:orientation="vertical"
         android:padding="16dp"
-        app:layout_constraintTop_toTopOf="parent"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="gone">
 
         <!-- 헤더 -->
         <LinearLayout
             android:id="@+id/headerCard2"
-            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:background="@drawable/card_bg"
             android:orientation="horizontal"
             android:padding="12dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:visibility="gone"
+            tools:visibility="invisible">
 
             <ImageView
                 android:layout_width="48dp"
@@ -134,40 +166,45 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:layout_marginStart="12dp"
+                android:gravity="center"
                 android:text="상품 경로 안내"
                 android:textColor="#222222"
-                android:layout_marginStart="12dp"
                 android:textSize="30sp"
                 android:textStyle="bold"
-                android:gravity="center"
-                />
+                tools:visibility="visible" />
+
         </LinearLayout>
+
 
         <!-- 빈 공간 (지도 보여주는 영역) -->
         <View
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            tools:visibility="gone" />
 
         <ImageButton
             android:id="@+id/btnCallClient"
             android:layout_width="match_parent"
             android:layout_height="100dp"
-            android:src="@drawable/call_bt"
+            android:layout_marginTop="10dp"
             android:background="@null"
             android:contentDescription="의뢰인에게 전화 걸기"
-            android:layout_marginTop="12dp"
-            android:scaleType="fitCenter" />
+            android:scaleType="fitCenter"
+            android:src="@drawable/call_bt"
+            tools:visibility="gone" />
 
         <ImageButton
             android:id="@+id/btnComplete"
             android:layout_width="match_parent"
             android:layout_height="100dp"
-            android:src="@drawable/complite_accept"
             android:background="@null"
             android:contentDescription="수령 완료"
-            android:layout_marginTop="8dp"
-            android:scaleType="fitCenter" />
+            android:scaleType="fitCenter"
+            android:src="@drawable/complite_accept"
+            tools:visibility="gone" />
+
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

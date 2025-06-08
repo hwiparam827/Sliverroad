@@ -27,7 +27,7 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
 
-class DeliveryFinishActivity : AppCompatActivity() {
+class FindBenchActivity : AppCompatActivity() {
 
     private lateinit var imagePreview: ImageView
     private lateinit var btnPhotoAdd: ImageButton
@@ -162,18 +162,15 @@ class DeliveryFinishActivity : AppCompatActivity() {
                     response: Response<ApiService.CompleteDeliveryResponse>
                 ) {
                     if (response.isSuccessful) {
-                        Toast.makeText(this@DeliveryFinishActivity, "✅ 배달 완료!", Toast.LENGTH_SHORT).show()
-                        startActivity(Intent(this@DeliveryFinishActivity, CallWaitingActivity::class.java).apply {
-                            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
-                        })
+                        Toast.makeText(this@FindBenchActivity, "✅ 업데이트 완료!", Toast.LENGTH_SHORT).show()
                         finish()
                     } else {
-                        Toast.makeText(this@DeliveryFinishActivity, "❌ 실패: ${response.code()}", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@FindBenchActivity, "❌ 실패: ${response.code()}", Toast.LENGTH_SHORT).show()
                     }
                 }
 
                 override fun onFailure(call: Call<ApiService.CompleteDeliveryResponse>, t: Throwable) {
-                    Toast.makeText(this@DeliveryFinishActivity, "❌ 오류: ${t.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@FindBenchActivity, "❌ 오류: ${t.message}", Toast.LENGTH_SHORT).show()
                 }
             })
     }

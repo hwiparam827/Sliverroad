@@ -1,6 +1,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -8,8 +9,8 @@
     <LinearLayout
 
         android:id="@+id/headerCard"
-        android:layout_width="0dp"
-        android:layout_height="80dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:background="@drawable/card_bg"
         android:orientation="horizontal"
         android:padding="12dp"
@@ -45,6 +46,21 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <TextView
+        android:id="@+id/tvRouteComparison"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#AAFFFFFF"
+        android:padding="8dp"
+        android:text="경로 비교 정보"
+        android:textSize="14sp"
+        android:textColor="#000000"
+        android:visibility="gone"
+        android:gravity="center"
+        app:layout_constraintTop_toBottomOf="@id/headerCard"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
     <!-- 경로 선택 바 -->
     <LinearLayout
         android:id="@+id/pathSelectionBar"
@@ -57,6 +73,16 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
+        <!-- 우측 상단 벤치 버튼 -->
+        <ImageButton
+            android:id="@+id/btnFindBench2"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_gravity="top|end"
+            android:background="@null"
+            android:contentDescription="벤치 정보"
+            android:src="@drawable/ic_bench"
+            tools:visibility="visible" />
 
         <ImageButton
             android:id="@+id/btnShortest"
@@ -103,26 +129,27 @@
     <!-- 안내 화면 오버레이 -->
     <LinearLayout
         android:id="@+id/navigationOverlay"
-        android:background="@android:color/transparent"
-        android:visibility="gone"
-        android:orientation="vertical"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:background="@android:color/transparent"
+        android:orientation="vertical"
         android:padding="16dp"
-        app:layout_constraintTop_toTopOf="parent"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="gone">
 
         <!-- 헤더 -->
         <LinearLayout
             android:id="@+id/headerCard2"
-            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:background="@drawable/card_bg"
             android:orientation="horizontal"
             android:padding="12dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:visibility="gone">
 
             <ImageView
                 android:layout_width="48dp"
@@ -135,21 +162,36 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:layout_marginStart="12dp"
+                android:gravity="center"
                 android:text="상품 경로 안내"
                 android:textColor="#222222"
-                android:layout_marginStart="12dp"
                 android:textSize="30sp"
                 android:textStyle="bold"
-                android:gravity="center"
 
                 />
         </LinearLayout>
 
+
+        <!-- 우측 상단 벤치 버튼 -->
         <!-- 빈 공간 (지도 보여주는 영역) -->
+
+        <ImageButton
+            android:id="@+id/btnFindBench"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_gravity="top|end"
+            android:background="@null"
+            android:contentDescription="벤치 정보"
+            android:src="@drawable/ic_bench"
+            android:visibility="visible"
+            tools:visibility="visible" />
+
         <View
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1" />
+
         <View
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -159,25 +201,24 @@
             android:id="@+id/btnCallClient"
             android:layout_width="match_parent"
             android:layout_height="100dp"
-            android:src="@drawable/call_bt"
+            android:layout_marginTop="12dp"
             android:background="@null"
             android:contentDescription="의뢰인에게 전화 걸기"
-            android:layout_marginTop="12dp"
-            android:scaleType="fitCenter" />
+            android:scaleType="fitCenter"
+            android:src="@drawable/call_bt" />
 
         <ImageButton
             android:id="@+id/btnComplete2"
             android:layout_width="match_parent"
             android:layout_height="100dp"
-            android:src="@drawable/complite_accept"
-            android:background="@null"
-            android:contentDescription="수령 완료"
             android:layout_marginTop="8dp"
-            android:scaleType="fitCenter"
+            android:background="@null"
             android:clickable="true"
-            android:focusable="true"
+            android:contentDescription="수령 완료"
             android:elevation="20dp"
-            />
+            android:focusable="true"
+            android:scaleType="fitCenter"
+            android:src="@drawable/complite_accept" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

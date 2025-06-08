@@ -22,7 +22,8 @@ data class IndividualRoute(
     val total_distance: Double,
     val total_risk: Double,
     val total_width: Double,
-    val benches: List<List<Double>>   // [[lat, lng], [lat, lng], ...]
+    val benches: List<List<Double>>  , // [[lat, lng], [lat, lng], ...]
+    val elevator_info: List<List<Double>> ,
 )
 
 data class WalkRoute(

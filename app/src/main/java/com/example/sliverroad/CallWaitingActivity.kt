@@ -7,7 +7,6 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import androidx.lifecycle.viewModelScope
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -15,9 +14,6 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import androidx.core.app.ActivityCompat
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.example.sliverroad.api.ApiClient
@@ -27,7 +23,6 @@ import com.example.sliverroad.data.LoginStatusRequest
 import com.example.sliverroad.data.CallStatusResponse
 import com.example.sliverroad.data.AcceptCallRequest
 import com.example.sliverroad.data.DeclineCallRequest
-import com.example.sliverroad.data.Driver
 import com.example.sliverroad.databinding.ActivityCallWaitingBinding
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.Dispatchers
@@ -46,10 +41,6 @@ import retrofit2.Callback
 import retrofit2.Response
 import okhttp3.RequestBody.Companion.toRequestBody
 import com.google.gson.Gson
-import okhttp3.RequestBody
-import java.io.Serializable
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale

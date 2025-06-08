@@ -11,12 +11,16 @@ import androidx.lifecycle.lifecycleScope
 import com.example.sliverroad.api.ApiClient
 import com.example.sliverroad.api.ApiClient.apiService
 import com.example.sliverroad.data.CallRequestDetailResponse
+import com.example.sliverroad.databinding.ActivityCallWaitingBinding
 import com.example.sliverroad.model.FindRouteResponse
 import com.google.gson.Gson
 import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import com.example.sliverroad.viewmodel.DriverViewModel
+import androidx.activity.viewModels   // Activity에서
+
 
 class CallInfoActivity : AppCompatActivity() {
 
@@ -40,12 +44,15 @@ class CallInfoActivity : AppCompatActivity() {
     private lateinit var tvDropoffAddr: TextView
     private lateinit var tvNote: TextView
     private lateinit var btnStartNavigation: ImageButton
+    private lateinit var binding: ActivityCallWaitingBinding
+    private val viewModel: DriverViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        accessToken = intent.getStringExtra("access_token") ?: ""
-
         setContentView(R.layout.activity_call_info)
+
+
+        accessToken = intent.getStringExtra("access_token") ?: ""
 
         // ───────────────────────────────────────────────────────────────────
         // 1) Intent에서 CallRequest 객체와 accessToken, requestId 꺼내기
@@ -118,7 +125,6 @@ class CallInfoActivity : AppCompatActivity() {
         tvReceiverPhone.text = "수취인 연락처: ${detail.recipient_phone}"
         tvDropoffAddr.text = "배달 장소: ${detail.address}"
         tvNote.text = "지침: ${detail.instructions}"
-        // tvFare.text = "배송료: ${detail.fare}"  // 서버 응답에 fare가 있으면 사용
 
         // ───────────────────────────────────────────────────────────────────
         // 5) “경로 안내” 버튼 클릭 시: 먼저 “pickup” 경로 요청 → 성공 시 OsmMapActivity로 이동

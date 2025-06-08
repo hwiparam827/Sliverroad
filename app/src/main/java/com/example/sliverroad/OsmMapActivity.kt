@@ -11,6 +11,7 @@ import android.os.Looper
 import android.util.Log
 import android.widget.ImageButton
 import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -30,7 +31,6 @@ import com.example.sliverroad.model.FindRouteResponse // ← 필요에 따라 �
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
-import com.example.sliverroad.model.LatLng
 
 import retrofit2.Call
 import retrofit2.Callback
@@ -89,6 +89,7 @@ class OsmMapActivity : AppCompatActivity() {
         val btnSafe = findViewById<ImageButton>(R.id.btnSafe)
         val btnShortest = findViewById<ImageButton>(R.id.btnShortest)
         val btnBench = findViewById<ImageButton>(R.id.btnBench)
+        val btnFindBench = findViewById<ImageButton>(R.id.btnFindBench)
 
         // 6) 위치 권한 검사 후, 업데이트 시작
         checkLocationPermissionAndStartUpdates()
@@ -104,12 +105,19 @@ class OsmMapActivity : AppCompatActivity() {
             navigationOverlay.visibility = android.view.View.VISIBLE
             headerCard2.visibility = android.view.View.VISIBLE
             btnComplete.visibility = android.view.View.VISIBLE
+            btnFindBench.visibility = android.view.View.VISIBLE
 
         }
+
 
         // 9) “의뢰인에게 전화 걸기” 버튼
         btnCallClient.setOnClickListener {
             makeDirectCall(clientPhoneNumber)
+        }
+
+        btnFindBench.setOnClickListener {
+            val intent = Intent(this@OsmMapActivity, FindBenchActivity::class.java)
+            startActivity(intent)  // ← 반드시 apply 블록 바깥에서 호출해야 함
         }
 
         // 10) “배달 완료” 버튼: 다른 화면(예: DeliveryMapActivity)으로 이동
@@ -119,104 +127,124 @@ class OsmMapActivity : AppCompatActivity() {
             sendDrawableImageToServer {  // 위 함수 호출
 
 
-            // 3-1) 서버에 “배달(딜리버리)” 경로 요청
-            val body = mapOf("destination_type" to "delivery")
-            apiService.findRoute(
-                authHeader = "Bearer $accessToken",
-                requestId = requestId,
-                body = body
-            ).enqueue(object: Callback<FindRouteResponse> {
-                override fun onResponse(
-                    call: Call<FindRouteResponse>,
-                    response: Response<FindRouteResponse>
-                ) {
-                    if (response.isSuccessful) {
-                        // 네트워크 응답으로 받아온 객체
-                        val data = response.body()!!
+                // 3-1) 서버에 “배달(딜리버리)” 경로 요청
+                val body = mapOf("destination_type" to "delivery")
+                apiService.findRoute(
+                    authHeader = "Bearer $accessToken",
+                    requestId = requestId,
+                    body = body
+                ).enqueue(object : Callback<FindRouteResponse> {
+                    override fun onResponse(
+                        call: Call<FindRouteResponse>,
+                        response: Response<FindRouteResponse>
+                    ) {
+                        if (response.isSuccessful) {
+                            // 네트워크 응답으로 받아온 객체
+                            val data = response.body()!!
 
-                        // 1) 예시: 받을 수 있는 key들을 로그에 찍어보기
-                        Log.d("Route", "request_id = ${data.request_id}")
-                        Log.d("Route", "requester_phone = ${data.requester_phone}")
-                        Log.d("Route", "origin = ${data.origin.latitude}, ${data.origin.longitude}")
-                        Log.d("Route", "destination = ${data.destination.latitude}, ${data.destination.longitude}")
-                        Log.d("Route", "destination_type = ${data.destination_type}")
+                            // 1) 예시: 받을 수 있는 key들을 로그에 찍어보기
+                            Log.d("Route", "request_id = ${data.request_id}")
+                            Log.d("Route", "requester_phone = ${data.requester_phone}")
+                            Log.d(
+                                "Route",
+                                "origin = ${data.origin.latitude}, ${data.origin.longitude}"
+                            )
+                            Log.d(
+                                "Route",
+                                "destination = ${data.destination.latitude}, ${data.destination.longitude}"
+                            )
+                            Log.d("Route", "destination_type = ${data.destination_type}")
 
-                        // 2) 네 가지 경로 중에서 “shortest” 경로 정보 꺼내기
-                        val deliveryinfo = data.routes["shortest"]  // 또는 "safe_path", "bench" 중 선택
-                        if (deliveryinfo != null) {
-                            // 보행 좌표, 벤치 좌표 등은 pickupInfo를 통해 읽어야 합니다.
-                            val walkCoords: List<List<Double>> = deliveryinfo.walk_route.coordinates
-                            if (walkCoords.isNotEmpty()) {
-                                val firstLat = walkCoords[0][0]
-                                val firstLng = walkCoords[0][1]
-                                Log.d("Route", "첫 좌표 (pickup): lat=$firstLat, lng=$firstLng")
+                            // 2) 네 가지 경로 중에서 “shortest” 경로 정보 꺼내기
+                            val deliveryinfo = data.routes["delivery"]
+                            if (deliveryinfo != null) {
+                                // 보행 좌표, 벤치 좌표 등은 pickupInfo를 통해 읽어야 합니다.
+                                val walkCoords: List<List<Double>> =
+                                    deliveryinfo.walk_route.coordinates
+                                if (walkCoords.isNotEmpty()) {
+                                    val firstLat = walkCoords[0][0]
+                                    val firstLng = walkCoords[0][1]
+                                    Log.d("Route", "첫 좌표 (pickup): lat=$firstLat, lng=$firstLng")
+                                }
+                                val benches: List<List<Double>> = deliveryinfo.benches
+                                Log.d("Route", "벤치 개수 (pickup) = ${benches.size}")
                             }
-                            val benches: List<List<Double>> = deliveryinfo.benches
-                            Log.d("Route", "벤치 개수 (pickup) = ${benches.size}")
+
+                            // 4) (선택) OsmMapActivity로 보낼 때 JSON으로 통째로 넘기고 싶다면 Gson 사용
+                            val gson = Gson()
+                            val jsonAllRoutes =
+                                gson.toJson(data.routes)    // Map<String, RouteInfo> 전체를 JSON string으로
+                            val originJson = gson.toJson(data.origin)
+                            val destinationJson = gson.toJson(data.destination)
+
+
+                            val intent =
+                                Intent(this@OsmMapActivity, DeliveryMapActivity::class.java).apply {
+                                    putExtra("access_token", accessToken)
+                                    putExtra("request_id", requestId)
+                                    putExtra("assignment_id", assignmentId)
+
+                                    // 길찾기 결과를 JSON String으로 넘기는 예시
+                                    putExtra("routes_json", jsonAllRoutes)
+                                    putExtra("origin_json", originJson)
+                                    putExtra("destination_json", destinationJson)
+                                }
+                            startActivity(intent)
+                            btnComplete.visibility = android.view.View.GONE
+                            finish()
+
+                        } else {
+                            Log.e(
+                                "API",
+                                "findRoute 실패: HTTP ${response.code()} / ${
+                                    response.errorBody()?.string()
+                                }"
+                            )
+                            Toast.makeText(
+                                this@OsmMapActivity,
+                                "경로 조회에 실패했습니다.",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
-
-                        // 4) (선택) OsmMapActivity로 보낼 때 JSON으로 통째로 넘기고 싶다면 Gson 사용
-                        val gson = Gson()
-                        val jsonAllRoutes = gson.toJson(data.routes)    // Map<String, RouteInfo> 전체를 JSON string으로
-                        val originJson      = gson.toJson(data.origin)
-                        val destinationJson = gson.toJson(data.destination)
-
-
-                        val intent = Intent(this@OsmMapActivity, DeliveryMapActivity::class.java).apply {
-                            putExtra("access_token", accessToken)
-                            putExtra("request_id", requestId)
-                            putExtra("assignment_id", assignmentId)
-
-                            // 길찾기 결과를 JSON String으로 넘기는 예시
-                            putExtra("routes_json", jsonAllRoutes)
-                            putExtra("origin_json", originJson)
-                            putExtra("destination_json", destinationJson)
-                        }
-                        startActivity(intent)
-                        btnComplete.visibility = android.view.View.GONE
-                        finish()
-
-                    } else {
-                        Log.e("API", "findRoute 실패: HTTP ${response.code()} / ${response.errorBody()?.string()}")
-                        Toast.makeText(this@OsmMapActivity, "경로 조회에 실패했습니다.", Toast.LENGTH_SHORT).show()
                     }
-                }
 
-                override fun onFailure(call: Call<FindRouteResponse>, t: Throwable) {
-                    Log.e("API", "findRoute 네트워크 오류", t)
-                    Toast.makeText(this@OsmMapActivity, "경로 조회 네트워크 오류", Toast.LENGTH_SHORT).show()
-                }
-            })
-        }}
+                    override fun onFailure(call: Call<FindRouteResponse>, t: Throwable) {
+                        Log.e("API", "findRoute 네트워크 오류", t)
+                        Toast.makeText(this@OsmMapActivity, "경로 조회 네트워크 오류", Toast.LENGTH_SHORT)
+                            .show()
+                    }
+                })
+            }
+
+        }
 
 
-
-
-        // 11) 서버에서 내려온 routes_json(전체 맵)을 파싱해서 allRoutes에 저장
         //    CallInfoActivity에서 Intent.putExtra("routes_json", gson.toJson(data.routes)) 했다 가정
+        // 11) server에서 넘어온 routes_json 파싱
         val routesJson = intent.getStringExtra("routes_json") ?: "{}"
+        Log.d("OsmMap", "▶▶▶ routes_json raw = $routesJson")
         allRoutes = Gson().fromJson(
             routesJson,
             object : TypeToken<Map<String, IndividualRoute>>() {}.type
         )
+        Log.d("OsmMap", "▶▶▶ allRoutes keySet = ${allRoutes.keys}")
 
-        drawRouteFromData("shortest")  // ✅ 수령지 → 목적지
-
-        btnShortest.setOnClickListener {
-            drawRouteFromData("shortest")  // ✅ 수령지 → 목적지
-        }
-
+        // 12) 버튼별로, 해당 키(key)에 해당하는 IndividualRoute를 꺼내서 그리기
         btnSafe.setOnClickListener {
             drawRouteFromData("safe_path")
         }
-
+        btnShortest.setOnClickListener {
+            drawRouteFromData("shortest")
+        }
         btnBench.setOnClickListener {
             drawRouteFromData("bench")
         }
 
-}
+        // 앱 실행 시 기본으로 “shortest” 경로를 한 번 그려둠
+        drawRouteFromData("shortest")
+    }
 
-        private fun checkLocationPermissionAndStartUpdates() {
+    private fun checkLocationPermissionAndStartUpdates() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
             != PackageManager.PERMISSION_GRANTED
         ) {
@@ -230,7 +258,7 @@ class OsmMapActivity : AppCompatActivity() {
         }
     }
     private fun sendDrawableImageToServer(onSuccess: () -> Unit) {
-        val inputStream = resources.openRawResource(R.raw.siliver_road)
+        val inputStream = resources.openRawResource(R.raw.sliver_load)
         val tempFile = File.createTempFile("logo_", ".png", cacheDir)
         tempFile.outputStream().use { output ->
             inputStream.copyTo(output)
@@ -292,116 +320,157 @@ class OsmMapActivity : AppCompatActivity() {
             Toast.makeText(this, "위치 권한이 필요합니다.", Toast.LENGTH_SHORT).show()
         }
     }
+    private fun compareWithShortestRoute(selectedKey: String) {
+        val shortest = allRoutes["shortest"]
+        val selected = allRoutes[selectedKey]
+
+        if (shortest == null || selected == null) {
+            Toast.makeText(this, "경로 비교에 필요한 데이터가 없습니다.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // 차이 계산
+        val distanceDiff = selected.total_distance - shortest.total_distance
+        val riskDiff = selected.total_risk - shortest.total_risk
+        val widthDiff = selected.total_width - shortest.total_width
+        val benchDiff = selected.benches.size - shortest.benches.size
+
+        // 포맷팅
+        val text = """
+        🚩 경로 비교 (${selectedKey})
+        - 거리: ${"%.1f".format(selected.total_distance)}m (${if (distanceDiff >= 0) "+" else ""}${"%.1f".format(distanceDiff)}m)
+        - 위험도: ${"%.1f".format(selected.total_risk)} (${if (riskDiff >= 0) "+" else ""}${"%.1f".format(riskDiff)})
+        - 도로 폭: ${"%.1f".format(selected.total_width)} (${if (widthDiff >= 0) "+" else ""}${"%.1f".format(widthDiff)})
+        - 벤치 수: ${selected.benches.size} (${if (benchDiff >= 0) "+" else ""}$benchDiff)
+    """.trimIndent()
+
+        // 표시
+        val tvComparison = findViewById<TextView>(R.id.tvRouteComparison)
+        tvComparison.text = text
+        tvComparison.visibility = android.view.View.VISIBLE
+    }
 
     /**
      * 서버에서 받아온 allRoutes 맵에서 key에 대응하는 IndividualRoute를 꺼내서 지도에 그립니다.
      * key: "shortest" or "safe_path" or "bench"
      */
     private fun drawRouteFromData(key: String) {
-        mapView.overlays.removeAll { it is Polyline || it is Marker }
-        mapView.overlays.add(myLocationMarker)
+        // 기존 Polyline을 모두 제거 (단, 내 위치 마커만 남겨두기 위해 잠시 꺼냄)
+        mapView.overlays.removeAll { it is Polyline || it == myLocationMarker }
+        Log.d("OsmMap", "allRoutes keys = ${allRoutes.keys}")
 
-        val route = allRoutes[key] ?: run {
-            Toast.makeText(this, "경로('$key') 정보 없음", Toast.LENGTH_SHORT).show()
+        // Map<String, IndividualRoute> 에서 해당 key 추출
+        val route: IndividualRoute? = allRoutes[key]
+        if (route == null) {
+            Toast.makeText(this, "해당 경로('$key') 데이터가 없습니다.", Toast.LENGTH_SHORT).show()
             return
         }
 
-        // ✅ 도보 구간 좌표: origin → 목적지
-        val walkPoints = route.walk_route.coordinates.map {
-            GeoPoint(it[0], it[1])
+        // 1) walk_route 좌표 (List<List<Double>> 형태)
+        val walkCoords: List<GeoPoint> = route.walk_route.coordinates.map { coord ->
+            GeoPoint(coord[0], coord[1])
         }
 
-        // ✅ 교통 구간 좌표: origin → 목적지
-        val transitPoints = route.transit_route.flatMap { segment ->
-            segment.coordinates.map { GeoPoint(it[0], it[1]) }
-        }
-
-        // 🚶 도보 구간 그리기
-        if (walkPoints.size >= 2) {
-            val walkLine = Polyline().apply {
-                color = getColorByWalkType(key) // walk 경로는 경로마다 색상 다르게
-                width = 7.0f
-                setPoints(walkPoints)
+        // 2) transit_route 내의 각 세그먼트(segment) 좌표들을 모두 꺼내서 GeoPoint 리스트로 변환
+        val transitCoords: List<GeoPoint> = route.transit_route.flatMap { segment ->
+            // segment.coordinates: List<List<Double>>
+            segment.coordinates.map { coord ->
+                GeoPoint(coord[0], coord[1])
             }
-            mapView.overlays.add(walkLine)
+
+        }
+        // ✅ 예외 처리: 두 경로가 모두 비어 있으면 그리지 않음
+        if (walkCoords.isEmpty() && transitCoords.isEmpty()) {
+            Toast.makeText(this, "해당 경로('$key')는 유효한 좌표가 없어 지도에 표시하지 않습니다.", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val color = getColorByType(key)
+        if (color == null) {
+            Toast.makeText(this, "해당 경로('$key')는 허용되지 않은 유형입니다.", Toast.LENGTH_SHORT).show()
+            return
         }
 
-        // 🚍 교통 구간 그리기 (색상 통일)
-        if (transitPoints.size >= 2) {
-            val transitLine = Polyline().apply {
-                color = 0xFF444444.toInt() // 회색
-                width = 6.0f
-                setPoints(transitPoints)
+        // 3) 워킹 구간 + 트랜짓 구간 좌표를 합친 전체 리스트
+        val allGeoPoints: List<GeoPoint> = buildList {
+            addAll(walkCoords)
+            addAll(transitCoords)
+        }
+
+        if (allGeoPoints.isNotEmpty()) {
+            // Polyline을 생성하고 색상은 key 에 따라 다르게 설정
+            // 이후에 Polyline 생성 시:
+            val polyline = Polyline().apply {
+                setColor(color)
+                width = 11.0f
+                setPoints(allGeoPoints)
             }
-            mapView.overlays.add(transitLine)
-        }
+            mapView.overlays.add(polyline)
 
-        val originLatLng: LatLng? = intent.getStringExtra("origin_json")?.let {
-            Gson().fromJson(it, LatLng::class.java)
-        }
-
-        val originPoint = if (originLatLng != null) {
-            GeoPoint(originLatLng.latitude, originLatLng.longitude)
-        } else if (walkPoints.isNotEmpty()) {
-            GeoPoint(walkPoints.first().latitude, walkPoints.first().longitude)
-        } else {
-            GeoPoint(0.0, 0.0) // fallback
-        }
-        val startMarker = Marker(mapView).apply {
-            position = originPoint
-            icon = ContextCompat.getDrawable(this@OsmMapActivity, R.drawable.ic_start)
-            setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-            title = "출발지"
-        }
-        mapView.overlays.add(startMarker)
-
-        // 📍 도착지 마커
-        val dest = intent.getStringExtra("destination_json")?.let {
-            Gson().fromJson(it, LatLng::class.java)
-        }
-        if (dest != null) {
-            val destinationPoint = GeoPoint(dest.latitude, dest.longitude)
-            val endMarker = Marker(mapView).apply {
-                position = destinationPoint
+            // 출발점 마커
+            val startMarker = Marker(mapView).apply {
+                position = allGeoPoints.first()
                 icon = ContextCompat.getDrawable(this@OsmMapActivity, R.drawable.ic_start)
                 setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                title = "목적지"
+                title = "출발지"
+            }
+            mapView.overlays.add(startMarker)
+
+            // 도착점 마커
+            val endMarker = Marker(mapView).apply {
+                position = allGeoPoints.last()
+                icon = ContextCompat.getDrawable(this@OsmMapActivity, R.drawable.ic_start)
+                setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                title = "도착지"
             }
             mapView.overlays.add(endMarker)
 
-            mapView.controller.setZoom(17.0)
-            mapView.controller.setCenter(originPoint)
+            // 맵 중앙 및 줌 설정
+            mapView.controller.setZoom(20.0)
+            mapView.controller.setCenter(allGeoPoints.first())
             mapView.invalidate()
+        } else {
+            Toast.makeText(this, "경로 좌표가 비어 있습니다.", Toast.LENGTH_SHORT).show()
         }
-
-        // 🪑 벤치 마커 (bench 모드일 때만)
-        if (key == "bench") {
-            route.benches.forEachIndexed { index, bench ->
-                if (bench.size >= 2) {
-                    val benchMarker = Marker(mapView).apply {
-                        position = GeoPoint(bench[0], bench[1])
-                        icon = ContextCompat.getDrawable(this@OsmMapActivity, R.drawable.ic_bench)
-                        setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                        title = "벤치 #${index + 1}"
-                    }
-                    mapView.overlays.add(benchMarker)
-                }
+        // 5) 벤치 마커 표시
+        for (coord in route.benches) {
+            val marker = Marker(mapView).apply {
+                position = GeoPoint(coord[0], coord[1])
+                icon = ContextCompat.getDrawable(this@OsmMapActivity, R.drawable.ic_bench)
+                title = "벤치"
+                setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
             }
+            mapView.overlays.add(marker)
         }
+
+// 6) 엘리베이터 마커 표시
+        for (coord in route.elevator_info) {
+            val marker = Marker(mapView).apply {
+                position = GeoPoint(coord[0], coord[1])
+                icon = ContextCompat.getDrawable(this@OsmMapActivity, R.drawable.ic_elevator)
+                title = "엘리베이터"
+                setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+            }
+            mapView.overlays.add(marker)
+        }
+
+
+        // 4) 마지막으로 내 위치 마커만 다시 꺼내서 추가
+        mapView.overlays.add(myLocationMarker)
+        compareWithShortestRoute(key)
     }
-
-
-
 
     /**
      * 경로 종류별 색상을 반환
      */
-    private fun getColorByType(type: String): Int {
+    private fun getColorByType(type: String): Int? {
         return when (type) {
             "shortest"  -> 0xFF1E90FF.toInt() // 파란색
             "safe_path" -> 0xFFFF0000.toInt() // 빨간색
             "bench"     -> 0xFF00FF00.toInt() // 초록색
-            else        -> 0xFF555555.toInt() // 회색
+            else -> {
+                Log.w("getColorByType", "❗알 수 없는 경로 타입: '$type'")
+                null // 색상 없음 → 경로 그리지 않음
+            }
         }
     }
 

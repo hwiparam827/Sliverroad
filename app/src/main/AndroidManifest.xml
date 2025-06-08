@@ -58,6 +58,10 @@
             android:name=".HistoryActivity"
             android:exported="false"/>
 
+        <!-- 벤치 업데이트 화면 -->
+        <activity android:name=".FindBenchActivity"
+            android:exported="false"/>
+
         <!-- 콜 대기중 화면 -->
         <activity android:name=".CallWaitingActivity"
             android:exported="false"/>
